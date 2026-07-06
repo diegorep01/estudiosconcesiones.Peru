@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Concesiones Viales del Perú — Portal de Análisis</title>
+<style>
+  :root {
+    --navy: #0d2c54;
+    --navy-light: #1a4070;
+    --gold: #c8962e;
+    --gold-light: #f5c842;
+    --bg: #f4f6f9;
+    --white: #ffffff;
+    --text: #1a2535;
+    --muted: #6b7a8d;
+    --border: #dde3ec;
+    --auto-color: #1a7a4a;
+    --auto-bg: #e8f5ee;
+    --cofin-color: #c85a1a;
+    --cofin-bg: #fdf0e8;
+    --shadow: 0 2px 12px rgba(13,44,84,0.10);
+    --shadow-hover: 0 8px 28px rgba(13,44,84,0.18);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); }
+
+  /* ── NAV ── */
+  nav {
+    background: var(--navy);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  .nav-brand { color: var(--white); font-size: 1.05rem; font-weight: 700; letter-spacing: 0.02em; display: flex; align-items: center; gap: 0.6rem; }
+  .nav-brand span { color: var(--gold); }
+  .nav-links { display: flex; gap: 1.5rem; }
+  .nav-links a { color: rgba(255,255,255,0.75); text-decoration: none; font-size: 0.88rem; font-weight: 500; transition: color 0.2s; }
+  .nav-links a:hover, .nav-links a.active { color: var(--gold); }
+
+  /* ── HERO ── */
+  .hero {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 60%, #1e4d82 100%);
+    color: var(--white);
+    padding: 3.5rem 2rem 4rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+  .hero-tag { display: inline-block; background: rgba(200,150,46,0.2); border: 1px solid var(--gold); color: var(--gold); padding: 0.3rem 1rem; border-radius: 20px; font-size: 0.78rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 1.2rem; }
+  .hero h1 { font-size: 2.4rem; font-weight: 800; margin-bottom: 0.8rem; line-height: 1.2; }
+  .hero h1 span { color: var(--gold); }
+  .hero p { color: rgba(255,255,255,0.75); font-size: 1.05rem; max-width: 560px; margin: 0 auto 2.5rem; line-height: 1.6; }
+
+  /* ── KPI STRIP ── */
+  .kpi-strip {
+    display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap;
+    position: relative; z-index: 1;
+  }
+  .kpi-card {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.15);
+    backdrop-filter: blur(8px);
+    border-radius: 12px;
+    padding: 1.2rem 1.8rem;
+    text-align: center;
+    min-width: 140px;
+  }
+  .kpi-card .val { font-size: 2rem; font-weight: 800; color: var(--gold); line-height: 1; }
+  .kpi-card .lbl { font-size: 0.78rem; color: rgba(255,255,255,0.7); margin-top: 0.4rem; letter-spacing: 0.04em; }
+
+  /* ── FILTROS ── */
+  .filtros-bar {
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 2rem;
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+    position: sticky; top: 64px; z-index: 90;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  .filtros-bar label { font-size: 0.82rem; font-weight: 600; color: var(--muted); }
+  .filtros-bar select, .filtros-bar input {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.45rem 0.8rem;
+    font-size: 0.85rem;
+    color: var(--text);
+    background: var(--white);
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .filtros-bar select:focus, .filtros-bar input:focus { border-color: var(--navy); }
+  .filtros-bar input { min-width: 200px; }
+  .btn-comp {
+    margin-left: auto;
+    background: var(--gold);
+    color: var(--white);
+    border: none;
+    border-radius: 8px;
+    padding: 0.5rem 1.2rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: background 0.2s;
+  }
+  .btn-comp:hover { background: #a87828; }
+
+  /* ── GRID CONCESIONES ── */
+  .main { max-width: 1280px; margin: 0 auto; padding: 2rem 2rem 4rem; }
+  .grid-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; }
+  .grid-header h2 { font-size: 1.1rem; font-weight: 700; color: var(--navy); }
+  .grid-count { font-size: 0.85rem; color: var(--muted); }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 1.2rem;
+  }
+
+  .card {
+    background: var(--white);
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    cursor: pointer;
+    transition: box-shadow 0.2s, transform 0.2s;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+  .card:hover { box-shadow: var(--shadow-hover); transform: translateY(-3px); }
+
+  .card-top {
+    height: 6px;
+  }
+  .card-top.auto { background: linear-gradient(90deg, var(--auto-color), #2eaa5a); }
+  .card-top.cofin { background: linear-gradient(90deg, var(--cofin-color), #e8771a); }
+
+  .card-body { padding: 1.2rem 1.3rem 1rem; }
+  .card-badge {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.25rem 0.7rem;
+    border-radius: 20px;
+    margin-bottom: 0.8rem;
+  }
+  .badge-auto { background: var(--auto-bg); color: var(--auto-color); }
+  .badge-cofin { background: var(--cofin-bg); color: var(--cofin-color); }
+
+  .card-nombre { font-size: 1.05rem; font-weight: 800; color: var(--navy); margin-bottom: 0.25rem; }
+  .card-subtitulo { font-size: 0.78rem; color: var(--muted); margin-bottom: 1rem; line-height: 1.4; }
+
+  .card-metrics {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  .metric { text-align: center; }
+  .metric .val { font-size: 1.15rem; font-weight: 800; color: var(--navy); line-height: 1; }
+  .metric .lbl { font-size: 0.68rem; color: var(--muted); margin-top: 0.2rem; }
+
+  .card-footer {
+    border-top: 1px solid var(--border);
+    padding-top: 0.8rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .card-inv { font-size: 0.82rem; color: var(--muted); }
+  .card-inv strong { color: var(--navy); }
+  .card-arrow { color: var(--gold); font-size: 1rem; font-weight: 700; }
+
+  /* ── NO RESULTS ── */
+  .no-results { text-align: center; padding: 4rem; color: var(--muted); display: none; }
+  .no-results p { font-size: 1.1rem; }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--navy);
+    color: rgba(255,255,255,0.6);
+    text-align: center;
+    padding: 2rem;
+    font-size: 0.82rem;
+    line-height: 1.8;
+  }
+  footer strong { color: var(--gold); }
+
+  @media (max-width: 600px) {
+    .hero h1 { font-size: 1.7rem; }
+    .kpi-strip { gap: 0.8rem; }
+    .kpi-card { min-width: 110px; padding: 0.9rem 1rem; }
+    .kpi-card .val { font-size: 1.5rem; }
+    .filtros-bar { flex-direction: column; align-items: stretch; }
+    .btn-comp { margin-left: 0; }
+    nav { padding: 0 1rem; }
+    .nav-links { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">🛣 Concesiones <span>Viales Perú</span></div>
+  <div class="nav-links">
+    <a href="index.html" class="active">Portal</a>
+    <a href="comparador.html">Comparador</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-tag">Investigación Doctoral · OSITRAN 2022</div>
+  <h1>Concesiones Viales<br>del <span>Perú</span></h1>
+  <p>Portal de análisis interactivo de las 16 concesiones viales en operación. Datos extraídos de los Informes de Desempeño de OSITRAN y del contrato de concesión de cada proyecto.</p>
+  <div class="kpi-strip" id="kpi-strip"></div>
+</section>
+
+<div class="filtros-bar">
+  <label>Tipo:</label>
+  <select id="fil-tipo" onchange="filtrar()">
+    <option value="">Todos</option>
+    <option value="Autosostenible">Autosostenible</option>
+    <option value="Cofinanciado">Cofinanciado</option>
+  </select>
+  <label>Región:</label>
+  <select id="fil-region" onchange="filtrar()">
+    <option value="">Todas</option>
+  </select>
+  <label>Ordenar por:</label>
+  <select id="fil-orden" onchange="filtrar()">
+    <option value="cronologico">Año suscripción ↑</option>
+    <option value="km-desc">Mayor km</option>
+    <option value="inv-desc">Mayor inversión</option>
+    <option value="adendas-desc">Más adendas</option>
+    <option value="nombre">Nombre A-Z</option>
+  </select>
+  <input type="text" id="fil-buscar" placeholder="🔍 Buscar concesión..." oninput="filtrar()" />
+  <a href="comparador.html" class="btn-comp">⚖ Comparar concesiones</a>
+</div>
+
+<main class="main">
+  <div class="grid-header">
+    <h2>Concesiones viales</h2>
+    <span class="grid-count" id="grid-count"></span>
+  </div>
+  <div class="grid" id="grid"></div>
+  <div class="no-results" id="no-results"><p>No se encontraron concesiones con los filtros aplicados.</p></div>
+</main>
+
+<footer>
+  Fuente: <strong>Informes de Desempeño OSITRAN</strong> · MTC · ProInversión<br>
+  Elaboración: Diego Cisneros Herrera — Tesis Doctoral 2025<br>
+  Los datos de gráficos son aproximaciones basadas en las descripciones cualitativas de la tesis.
+</footer>
+
+<script src="js/data.js"></script>
+<script>
+  // ── RENDER KPIs ──
+  function renderKPIs() {
+    const strip = document.getElementById('kpi-strip');
+    const total2022 = Object.values(CONCESIONES).reduce((s,c) => s + c.inversionInicial + c.inversionAumento2022, 0);
+    const totalAdendas = Object.values(CONCESIONES).reduce((s,c) => s + c.numAdendas, 0);
+    const kpis = [
+      { val: '16', lbl: 'Concesiones' },
+      { val: STATS.totalKm.toLocaleString('es-PE') + ' km', lbl: 'Red concesionada' },
+      { val: '$' + Math.round(total2022/1000*10)/10 + 'B', lbl: 'Inversión total 2022' },
+      { val: STATS.totalConcesiones - 1, lbl: 'Con adendas' },
+      { val: STATS.autosostenibles + '/' + STATS.cofinanciadas, lbl: 'Auto / Cofinanc.' }
+    ];
+    strip.innerHTML = kpis.map(k => `
+      <div class="kpi-card">
+        <div class="val">${k.val}</div>
+        <div class="lbl">${k.lbl}</div>
+      </div>`).join('');
+  }
+
+  // ── RENDER CARD ──
+  function renderCard(c) {
+    const esAuto = c.tipo === 'Autosostenible';
+    const invTotal = c.inversionInicial + c.inversionAumento2022;
+    return `
+      <a class="card" href="concesion.html?id=${c.id}">
+        <div class="card-top ${esAuto ? 'auto' : 'cofin'}"></div>
+        <div class="card-body">
+          <span class="card-badge ${esAuto ? 'badge-auto' : 'badge-cofin'}">${c.tipo}</span>
+          <div class="card-nombre">${c.nombre}</div>
+          <div class="card-subtitulo">${c.subtitulo}</div>
+          <div class="card-metrics">
+            <div class="metric"><div class="val">${c.km.toLocaleString('es-PE')}</div><div class="lbl">km</div></div>
+            <div class="metric"><div class="val">${c.peajes}</div><div class="lbl">peajes</div></div>
+            <div class="metric"><div class="val">${c.plazo}a</div><div class="lbl">plazo</div></div>
+          </div>
+          <div class="card-footer">
+            <div class="card-inv">Inv. 2022 <strong>$${invTotal}M</strong> · ${c.numAdendas} adendas</div>
+            <span class="card-arrow">→</span>
+          </div>
+        </div>
+      </a>`;
+  }
+
+  // ── FILTRAR Y RENDERIZAR ──
+  function filtrar() {
+    const tipo = document.getElementById('fil-tipo').value;
+    const region = document.getElementById('fil-region').value;
+    const orden = document.getElementById('fil-orden').value;
+    const buscar = document.getElementById('fil-buscar').value.toLowerCase().trim();
+
+    let lista = LISTA_CONCESIONES.map(id => CONCESIONES[id]);
+
+    if (tipo) lista = lista.filter(c => c.tipo === tipo);
+    if (region) lista = lista.filter(c => c.region === region);
+    if (buscar) lista = lista.filter(c =>
+      c.nombre.toLowerCase().includes(buscar) ||
+      c.subtitulo.toLowerCase().includes(buscar) ||
+      c.region.toLowerCase().includes(buscar)
+    );
+
+    if (orden === 'km-desc') lista.sort((a,b) => b.km - a.km);
+    else if (orden === 'inv-desc') lista.sort((a,b) => (b.inversionInicial+b.inversionAumento2022) - (a.inversionInicial+a.inversionAumento2022));
+    else if (orden === 'adendas-desc') lista.sort((a,b) => b.numAdendas - a.numAdendas);
+    else if (orden === 'nombre') lista.sort((a,b) => a.nombre.localeCompare(b.nombre));
+
+    const grid = document.getElementById('grid');
+    const noResults = document.getElementById('no-results');
+
+    if (lista.length === 0) {
+      grid.innerHTML = '';
+      noResults.style.display = 'block';
+    } else {
+      noResults.style.display = 'none';
+      grid.innerHTML = lista.map(renderCard).join('');
+    }
+    document.getElementById('grid-count').textContent = `Mostrando ${lista.length} de 16 concesiones`;
+  }
+
+  // ── INIT ──
+  function init() {
+    renderKPIs();
+
+    // Poblar selector de regiones
+    const regiones = [...new Set(LISTA_CONCESIONES.map(id => CONCESIONES[id].region))].sort();
+    const selReg = document.getElementById('fil-region');
+    regiones.forEach(r => {
+      const opt = document.createElement('option');
+      opt.value = r; opt.textContent = r;
+      selReg.appendChild(opt);
+    });
+
+    filtrar();
+  }
+
+  init();
+</script>
+</body>
+</html>

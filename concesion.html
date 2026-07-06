@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — Concesiones Viales Perú</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --navy: #0d2c54;
+    --navy-light: #1a4070;
+    --gold: #c8962e;
+    --bg: #f4f6f9;
+    --white: #ffffff;
+    --text: #1a2535;
+    --muted: #6b7a8d;
+    --border: #dde3ec;
+    --auto-color: #1a7a4a;
+    --auto-bg: #e8f5ee;
+    --cofin-color: #c85a1a;
+    --cofin-bg: #fdf0e8;
+    --shadow: 0 2px 12px rgba(13,44,84,0.10);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); }
+
+  nav {
+    background: var(--navy);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  .nav-brand { color: var(--white); font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 0.6rem; }
+  .nav-brand span { color: var(--gold); }
+  .nav-links { display: flex; gap: 1.5rem; align-items: center; }
+  .nav-links a { color: rgba(255,255,255,0.75); text-decoration: none; font-size: 0.88rem; font-weight: 500; transition: color 0.2s; }
+  .nav-links a:hover { color: var(--gold); }
+  .btn-back { color: var(--gold) !important; border: 1px solid rgba(200,150,46,0.4); border-radius: 6px; padding: 0.3rem 0.8rem !important; }
+
+  .hero-conc {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+    padding: 2.5rem 2rem 3rem;
+    color: var(--white);
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-conc::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+  .hero-inner { max-width: 1200px; margin: 0 auto; position: relative; z-index: 1; }
+  .badge-hero {
+    display: inline-block; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase; padding: 0.3rem 0.9rem; border-radius: 20px; margin-bottom: 0.8rem;
+  }
+  .badge-auto { background: rgba(26,122,74,0.2); color: #5dd98c; border: 1px solid rgba(26,122,74,0.4); }
+  .badge-cofin { background: rgba(200,90,26,0.2); color: #f5a070; border: 1px solid rgba(200,90,26,0.4); }
+  .hero-inner h1 { font-size: 2rem; font-weight: 800; margin-bottom: 0.3rem; }
+  .hero-inner .sub { color: rgba(255,255,255,0.65); font-size: 0.95rem; margin-bottom: 1.8rem; }
+
+  .kpi-row { display: flex; gap: 1rem; flex-wrap: wrap; }
+  .kpi-item {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 10px;
+    padding: 0.9rem 1.4rem;
+    min-width: 130px;
+    text-align: center;
+  }
+  .kpi-item .val { font-size: 1.6rem; font-weight: 800; color: var(--gold); line-height: 1; }
+  .kpi-item .lbl { font-size: 0.72rem; color: rgba(255,255,255,0.65); margin-top: 0.3rem; }
+
+  .main { max-width: 1200px; margin: 0 auto; padding: 2rem 2rem 4rem; }
+
+  .layout { display: grid; grid-template-columns: 300px 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+
+  .card {
+    background: var(--white);
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    padding: 1.5rem;
+    box-shadow: var(--shadow);
+  }
+  .card h3 {
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 1rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 2px solid var(--gold);
+    display: inline-block;
+  }
+
+  .ficha-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 0.6rem 0; border-bottom: 1px solid var(--border); gap: 0.5rem; }
+  .ficha-row:last-child { border-bottom: none; }
+  .ficha-key { font-size: 0.78rem; color: var(--muted); min-width: 0; flex: 1; }
+  .ficha-val { font-size: 0.82rem; font-weight: 600; color: var(--text); text-align: right; max-width: 60%; }
+
+  .chart-wrap { position: relative; height: 280px; }
+
+  .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+
+  .analisis-text { font-size: 0.88rem; line-height: 1.75; color: var(--text); }
+
+  /* Adendas */
+  .adendas-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  .adendas-table th { background: var(--navy); color: var(--white); padding: 0.6rem 0.8rem; text-align: left; font-weight: 600; font-size: 0.75rem; letter-spacing: 0.04em; }
+  .adendas-table th:first-child { border-radius: 8px 0 0 0; }
+  .adendas-table th:last-child { border-radius: 0 8px 0 0; }
+  .adendas-table td { padding: 0.7rem 0.8rem; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.5; }
+  .adendas-table tr:last-child td { border-bottom: none; }
+  .adendas-table tr:hover td { background: #f8fafc; }
+  .adendas-table td:first-child { font-weight: 700; color: var(--navy); white-space: nowrap; }
+  .adendas-table td:nth-child(2) { white-space: nowrap; color: var(--muted); }
+
+  .no-adendas { text-align: center; padding: 2rem; color: var(--muted); font-size: 0.9rem; }
+  .no-adendas span { font-size: 2rem; display: block; margin-bottom: 0.5rem; }
+
+  /* Navegación entre concesiones */
+  .nav-conc { display: flex; justify-content: space-between; margin-top: 2rem; gap: 1rem; }
+  .nav-conc a {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.8rem 1.2rem;
+    text-decoration: none;
+    color: var(--text);
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    max-width: 48%;
+  }
+  .nav-conc a:hover { border-color: var(--navy); box-shadow: var(--shadow); }
+  .nav-conc a .dir { font-size: 1rem; color: var(--gold); }
+  .nav-conc a .name { font-weight: 600; font-size: 0.8rem; color: var(--navy); }
+  .nav-conc a .tipo-badge { font-size: 0.68rem; }
+
+  footer {
+    background: var(--navy);
+    color: rgba(255,255,255,0.6);
+    text-align: center;
+    padding: 1.5rem 2rem;
+    font-size: 0.8rem;
+    line-height: 1.8;
+  }
+  footer strong { color: var(--gold); }
+
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    .charts-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 600px) {
+    .hero-inner h1 { font-size: 1.5rem; }
+    .kpi-item .val { font-size: 1.3rem; }
+    .nav-links { display: none; }
+    .main { padding: 1rem 1rem 3rem; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">🛣 Concesiones <span>Viales Perú</span></div>
+  <div class="nav-links">
+    <a href="index.html" class="btn-back">← Portal</a>
+    <a href="comparador.html">Comparador</a>
+  </div>
+</nav>
+
+<section class="hero-conc" id="hero-conc">
+  <div class="hero-inner">
+    <div id="badge-hero" class="badge-hero"></div>
+    <h1 id="conc-nombre">Cargando...</h1>
+    <p class="sub" id="conc-sub"></p>
+    <div class="kpi-row" id="kpi-row"></div>
+  </div>
+</section>
+
+<main class="main">
+
+  <div class="layout">
+    <!-- Ficha técnica -->
+    <div class="card">
+      <h3>Ficha técnica</h3>
+      <div id="ficha-rows"></div>
+    </div>
+
+    <!-- Gráfico inversión -->
+    <div class="card">
+      <h3>Evolución de la inversión acumulada</h3>
+      <div class="chart-wrap">
+        <canvas id="chart-inv"></canvas>
+      </div>
+      <p style="font-size:0.72rem;color:var(--muted);margin-top:0.5rem;">Eje izq.: % sobre inversión comprometida 2022 · Eje der.: inversión acumulada en M USD</p>
+    </div>
+  </div>
+
+  <div class="charts-grid">
+    <!-- Gráfico IMD -->
+    <div class="card">
+      <h3>Evolución del tráfico (IMD)</h3>
+      <div class="chart-wrap">
+        <canvas id="chart-imd"></canvas>
+      </div>
+      <p style="font-size:0.72rem;color:var(--muted);margin-top:0.5rem;">Intensidad Media Diaria — vehículos/día</p>
+    </div>
+
+    <!-- Análisis -->
+    <div class="card">
+      <h3>Análisis</h3>
+      <p class="analisis-text" id="analisis-text"></p>
+    </div>
+  </div>
+
+  <!-- Adendas -->
+  <div class="card">
+    <h3>Adendas al contrato de concesión</h3>
+    <div id="adendas-cont"></div>
+  </div>
+
+  <!-- Navegación entre concesiones -->
+  <div class="nav-conc" id="nav-conc"></div>
+
+</main>
+
+<footer>
+  Fuente: <strong>Informes de Desempeño OSITRAN</strong> · MTC · ProInversión<br>
+  Elaboración: Diego Cisneros Herrera — Tesis Doctoral 2025 · Los gráficos son aproximaciones basadas en descripciones cualitativas de la tesis.
+</footer>
+
+<script src="js/data.js"></script>
+<script>
+const params = new URLSearchParams(window.location.search);
+const id = params.get('id');
+const c = id && CONCESIONES[id];
+
+if (!c) {
+  document.body.innerHTML = '<div style="text-align:center;padding:4rem;"><h2>Concesión no encontrada.</h2><a href="index.html">← Volver al portal</a></div>';
+} else {
+  document.title = c.nombre + ' — Concesiones Viales Perú';
+
+  const esAuto = c.tipo === 'Autosostenible';
+  const colBadge = esAuto ? 'badge-auto' : 'badge-cofin';
+  const invTotal = c.inversionInicial + c.inversionAumento2022;
+
+  // Hero
+  document.getElementById('badge-hero').textContent = c.tipo;
+  document.getElementById('badge-hero').className = 'badge-hero ' + colBadge;
+  document.getElementById('conc-nombre').textContent = c.nombre;
+  document.getElementById('conc-sub').textContent = c.subtitulo;
+
+  // KPIs
+  const kpis = [
+    { val: c.km.toLocaleString('es-PE') + ' km', lbl: 'Red concesionada' },
+    { val: c.peajes, lbl: 'Estaciones de peaje' },
+    { val: c.plazo + ' años', lbl: 'Plazo de concesión' },
+    { val: '$' + c.inversionInicial + 'M', lbl: 'Inv. comprometida inicial' },
+    { val: '$' + invTotal + 'M', lbl: 'Inv. comprometida 2022' },
+    { val: c.numAdendas, lbl: 'Adendas firmadas' }
+  ];
+  document.getElementById('kpi-row').innerHTML = kpis.map(k =>
+    `<div class="kpi-item"><div class="val">${k.val}</div><div class="lbl">${k.lbl}</div></div>`
+  ).join('');
+
+  // Ficha
+  const filas = [
+    ['Fecha Buena Pro', c.fechaBuenaPro],
+    ['Fecha Suscripción', c.fechaSuscripcion],
+    ['Inicio de concesión', c.inicioConcesion],
+    ['Inicio de explotación', c.inicioExplotacion],
+    ['Plazo', c.plazo + ' años'],
+    ['Tipo de concesión', c.tipo],
+    ['Kilómetros', c.km.toLocaleString('es-PE') + ' km'],
+    ['N° de peajes', c.peajes],
+    ['Factor de competencia', c.factorCompetencia],
+    ['Factor de retribución', c.factorRetribucion],
+    ['Inv. inicial (corriente + IGV)', '$' + c.inversionInicial + 'M USD'],
+    ['Aumento inversión hasta 2022', (c.inversionAumento2022 >= 0 ? '+' : '') + '$' + c.inversionAumento2022 + 'M USD'],
+    ['Total inv. comprometida 2022', '$' + invTotal + 'M USD'],
+    ['N° adendas', c.numAdendas],
+    ['Región', c.region]
+  ];
+  document.getElementById('ficha-rows').innerHTML = filas.map(([k,v]) =>
+    `<div class="ficha-row"><span class="ficha-key">${k}</span><span class="ficha-val">${v}</span></div>`
+  ).join('');
+
+  // Análisis
+  document.getElementById('analisis-text').textContent = c.analisis;
+
+  // Adendas
+  const aDiv = document.getElementById('adendas-cont');
+  if (c.adendas.length === 0) {
+    aDiv.innerHTML = `<div class="no-adendas"><span>🏆</span>Esta es la única concesión de las 16 sin ninguna adenda firmada hasta 2022.</div>`;
+  } else {
+    aDiv.innerHTML = `
+      <table class="adendas-table">
+        <thead>
+          <tr><th>N°</th><th>Fecha</th><th>Motivos principales</th></tr>
+        </thead>
+        <tbody>
+          ${c.adendas.map(a => `
+            <tr>
+              <td>Adenda ${a.n}</td>
+              <td>${a.fecha}</td>
+              <td>${a.motivo}</td>
+            </tr>`).join('')}
+        </tbody>
+      </table>`;
+  }
+
+  // Navegación prev/next
+  const idx = LISTA_CONCESIONES.indexOf(id);
+  const prevId = idx > 0 ? LISTA_CONCESIONES[idx - 1] : null;
+  const nextId = idx < LISTA_CONCESIONES.length - 1 ? LISTA_CONCESIONES[idx + 1] : null;
+  const navDiv = document.getElementById('nav-conc');
+  navDiv.innerHTML = `
+    ${prevId ? `<a href="concesion.html?id=${prevId}"><span class="dir">←</span><div><div style="font-size:0.7rem;color:var(--muted)">Anterior</div><div class="name">${CONCESIONES[prevId].nombre}</div></div></a>` : '<span></span>'}
+    ${nextId ? `<a href="concesion.html?id=${nextId}" style="margin-left:auto;text-align:right;"><div><div style="font-size:0.7rem;color:var(--muted)">Siguiente</div><div class="name">${CONCESIONES[nextId].nombre}</div></div><span class="dir">→</span></a>` : ''}
+  `;
+
+  // ── CHART INVERSIÓN ──
+  const invColors = { border: '#c8962e', bg: 'rgba(200,150,46,0.12)', line2: '#0d2c54' };
+  const invMillones = c.inv.pct.map(p => Math.round(p / 100 * invTotal * 10) / 10);
+
+  new Chart(document.getElementById('chart-inv'), {
+    data: {
+      labels: c.inv.years,
+      datasets: [
+        {
+          type: 'bar',
+          label: 'Inversión acum. (M USD)',
+          data: invMillones,
+          backgroundColor: 'rgba(13,44,84,0.15)',
+          borderColor: 'rgba(13,44,84,0.4)',
+          borderWidth: 1,
+          borderRadius: 3,
+          yAxisID: 'y2',
+          order: 2
+        },
+        {
+          type: 'line',
+          label: '% avance inversión',
+          data: c.inv.pct,
+          borderColor: '#c8962e',
+          backgroundColor: 'rgba(200,150,46,0.08)',
+          borderWidth: 2.5,
+          pointRadius: 3,
+          pointBackgroundColor: '#c8962e',
+          tension: 0.35,
+          fill: true,
+          yAxisID: 'y1',
+          order: 1
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { position: 'top', labels: { font: { size: 11 }, usePointStyle: true } },
+        tooltip: {
+          callbacks: {
+            label: ctx => ctx.dataset.label + ': ' + ctx.parsed.y + (ctx.datasetIndex === 1 ? '%' : ' M USD')
+          }
+        }
+      },
+      scales: {
+        x: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { size: 10 } } },
+        y1: {
+          type: 'linear', position: 'left',
+          title: { display: true, text: '% avance', font: { size: 10 } },
+          ticks: { font: { size: 10 }, callback: v => v + '%' },
+          grid: { color: 'rgba(0,0,0,0.05)' }
+        },
+        y2: {
+          type: 'linear', position: 'right',
+          title: { display: true, text: 'M USD', font: { size: 10 } },
+          ticks: { font: { size: 10 }, callback: v => '$' + v + 'M' },
+          grid: { drawOnChartArea: false }
+        }
+      }
+    }
+  });
+
+  // ── CHART IMD ──
+  new Chart(document.getElementById('chart-imd'), {
+    type: 'line',
+    data: {
+      labels: c.imd.years,
+      datasets: [{
+        label: 'IMD (veh/día)',
+        data: c.imd.vals,
+        borderColor: esAuto ? '#1a7a4a' : '#c85a1a',
+        backgroundColor: esAuto ? 'rgba(26,122,74,0.1)' : 'rgba(200,90,26,0.1)',
+        borderWidth: 2.5,
+        pointRadius: 4,
+        pointBackgroundColor: esAuto ? '#1a7a4a' : '#c85a1a',
+        tension: 0.35,
+        fill: true
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: { label: ctx => 'IMD: ' + ctx.parsed.y.toLocaleString('es-PE') + ' veh/día' }
+        }
+      },
+      scales: {
+        x: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { size: 10 } } },
+        y: {
+          grid: { color: 'rgba(0,0,0,0.05)' },
+          ticks: { font: { size: 10 }, callback: v => v.toLocaleString('es-PE') }
+        }
+      }
+    }
+  });
+}
+</script>
+</body>
+</html>

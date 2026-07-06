@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Comparador — Concesiones Viales Perú</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --navy: #0d2c54;
+    --navy-light: #1a4070;
+    --gold: #c8962e;
+    --bg: #f4f6f9;
+    --white: #ffffff;
+    --text: #1a2535;
+    --muted: #6b7a8d;
+    --border: #dde3ec;
+    --shadow: 0 2px 12px rgba(13,44,84,0.10);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); }
+
+  nav {
+    background: var(--navy); padding: 0 2rem;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 64px; position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  .nav-brand { color: var(--white); font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 0.6rem; }
+  .nav-brand span { color: var(--gold); }
+  .nav-links { display: flex; gap: 1.5rem; align-items: center; }
+  .nav-links a { color: rgba(255,255,255,0.75); text-decoration: none; font-size: 0.88rem; font-weight: 500; transition: color 0.2s; }
+  .nav-links a:hover, .nav-links a.active { color: var(--gold); }
+  .btn-back { color: var(--gold) !important; border: 1px solid rgba(200,150,46,0.4); border-radius: 6px; padding: 0.3rem 0.8rem !important; }
+
+  .hero {
+    background: linear-gradient(135deg, var(--navy) 0%, #1e4d82 100%);
+    padding: 2.5rem 2rem;
+    color: var(--white);
+    text-align: center;
+  }
+  .hero h1 { font-size: 1.8rem; font-weight: 800; margin-bottom: 0.4rem; }
+  .hero h1 span { color: var(--gold); }
+  .hero p { color: rgba(255,255,255,0.7); font-size: 0.92rem; }
+
+  .main { max-width: 1280px; margin: 0 auto; padding: 2rem 2rem 4rem; }
+
+  .selector-section {
+    background: var(--white);
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow);
+  }
+  .selector-section h2 { font-size: 0.85rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 1rem; }
+
+  .selector-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 0.6rem;
+    max-height: 320px;
+    overflow-y: auto;
+    padding-right: 0.3rem;
+  }
+  .sel-item {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.6rem 0.9rem;
+    border-radius: 8px;
+    border: 1.5px solid var(--border);
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .sel-item:hover { border-color: var(--navy); background: #f0f4f9; }
+  .sel-item.selected { border-color: var(--gold); background: #fff8eb; }
+  .sel-check { width: 18px; height: 18px; border-radius: 4px; border: 2px solid var(--border); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; color: var(--white); transition: all 0.15s; }
+  .sel-item.selected .sel-check { background: var(--gold); border-color: var(--gold); }
+  .sel-nombre { font-size: 0.82rem; font-weight: 600; }
+  .sel-info { font-size: 0.7rem; color: var(--muted); }
+  .sel-badge { font-size: 0.65rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 10px; }
+  .badge-auto { background: #e8f5ee; color: #1a7a4a; }
+  .badge-cofin { background: #fdf0e8; color: #c85a1a; }
+
+  .sel-actions { margin-top: 1rem; display: flex; gap: 0.8rem; align-items: center; }
+  .btn-sel-all { background: none; border: 1px solid var(--border); border-radius: 6px; padding: 0.4rem 0.9rem; font-size: 0.8rem; cursor: pointer; color: var(--muted); }
+  .btn-sel-all:hover { border-color: var(--navy); color: var(--navy); }
+  .btn-compare { background: var(--navy); color: var(--white); border: none; border-radius: 8px; padding: 0.5rem 1.4rem; font-size: 0.88rem; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+  .btn-compare:hover { background: var(--navy-light); }
+  .sel-count { color: var(--muted); font-size: 0.82rem; }
+
+  .card { background: var(--white); border-radius: 14px; border: 1px solid var(--border); padding: 1.5rem; box-shadow: var(--shadow); margin-bottom: 1.5rem; }
+  .card h3 { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 1.2rem; padding-bottom: 0.6rem; border-bottom: 2px solid var(--gold); display: inline-block; }
+
+  /* Rankings */
+  .rankings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+  .rank-block { background: var(--bg); border-radius: 10px; padding: 1rem; }
+  .rank-block h4 { font-size: 0.72rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.6rem; }
+  .rank-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.3rem 0; font-size: 0.8rem; }
+  .rank-pos { font-weight: 800; color: var(--gold); width: 20px; flex-shrink: 0; }
+  .rank-name { font-weight: 600; flex: 1; }
+  .rank-val { color: var(--muted); white-space: nowrap; }
+  .rank-bar-wrap { height: 4px; background: var(--border); border-radius: 2px; margin-top: 2px; }
+  .rank-bar { height: 100%; border-radius: 2px; background: var(--gold); }
+
+  /* Tabla comparativa */
+  .comp-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; overflow-x: auto; display: block; }
+  .comp-table th { background: var(--navy); color: var(--white); padding: 0.65rem 0.9rem; text-align: left; font-size: 0.75rem; font-weight: 600; white-space: nowrap; }
+  .comp-table th:first-child { border-radius: 8px 0 0 0; }
+  .comp-table .var-col { width: 180px; font-size: 0.72rem; color: var(--muted); font-weight: 600; white-space: nowrap; }
+  .comp-table td { padding: 0.65rem 0.9rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .comp-table tr:last-child td { border-bottom: none; }
+  .comp-table .best { color: #1a7a4a; font-weight: 700; background: #f0faf5; }
+  .comp-table .worst { color: #c85a1a; font-weight: 700; background: #fef6f0; }
+
+  /* Gráficos comparativos */
+  .chart-comp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  .chart-wrap { position: relative; height: 300px; }
+
+  .empty-state { text-align: center; padding: 3rem; color: var(--muted); }
+  .empty-state span { font-size: 3rem; display: block; margin-bottom: 0.8rem; }
+  .empty-state p { font-size: 0.95rem; }
+
+  footer { background: var(--navy); color: rgba(255,255,255,0.6); text-align: center; padding: 1.5rem 2rem; font-size: 0.8rem; line-height: 1.8; }
+  footer strong { color: var(--gold); }
+
+  @media (max-width: 600px) {
+    .chart-comp-grid { grid-template-columns: 1fr; }
+    .nav-links { display: none; }
+    .hero h1 { font-size: 1.4rem; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">🛣 Concesiones <span>Viales Perú</span></div>
+  <div class="nav-links">
+    <a href="index.html" class="btn-back">← Portal</a>
+    <a href="comparador.html" class="active">Comparador</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <h1>Comparador de <span>Concesiones</span></h1>
+  <p>Selecciona las concesiones que quieres comparar y analiza sus diferencias.</p>
+</section>
+
+<main class="main">
+
+  <!-- Selector -->
+  <div class="selector-section">
+    <h2>Selecciona concesiones</h2>
+    <div class="selector-grid" id="selector-grid"></div>
+    <div class="sel-actions">
+      <button class="btn-sel-all" onclick="selectAll()">Seleccionar todas</button>
+      <button class="btn-sel-all" onclick="clearAll()">Limpiar</button>
+      <span class="sel-count" id="sel-count">0 seleccionadas</span>
+      <button class="btn-compare" onclick="renderComparison()">⚖ Comparar →</button>
+    </div>
+  </div>
+
+  <!-- Rankings globales (siempre visibles) -->
+  <div class="card">
+    <h3>Rankings globales (todas las concesiones)</h3>
+    <div class="rankings-grid" id="rankings-grid"></div>
+  </div>
+
+  <!-- Resultados -->
+  <div id="results"></div>
+
+</main>
+
+<footer>
+  Fuente: <strong>Informes de Desempeño OSITRAN</strong> · MTC · ProInversión<br>
+  Elaboración: Diego Cisneros Herrera — Tesis Doctoral 2025
+</footer>
+
+<script src="js/data.js"></script>
+<script>
+const PALETTE = [
+  '#c8962e','#0d2c54','#1a7a4a','#c85a1a','#5b48c8','#c82860',
+  '#28a8c8','#78a830','#a05090','#c8c030','#4870c8','#c86820'
+];
+
+let selected = new Set();
+let chartInstances = [];
+
+// ── SELECTOR ──
+function buildSelector() {
+  const grid = document.getElementById('selector-grid');
+  grid.innerHTML = LISTA_CONCESIONES.map(id => {
+    const c = CONCESIONES[id];
+    const esAuto = c.tipo === 'Autosostenible';
+    return `
+      <div class="sel-item" id="sel-${id}" onclick="toggleSel('${id}')">
+        <div class="sel-check" id="chk-${id}">✓</div>
+        <div>
+          <div class="sel-nombre">${c.nombre}</div>
+          <div class="sel-info">
+            <span class="sel-badge ${esAuto ? 'badge-auto' : 'badge-cofin'}">${c.tipo}</span>
+            ${c.km} km · $${c.inversionInicial + c.inversionAumento2022}M
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function toggleSel(id) {
+  if (selected.has(id)) selected.delete(id);
+  else selected.add(id);
+  document.getElementById('sel-' + id).classList.toggle('selected', selected.has(id));
+  document.getElementById('sel-count').textContent = selected.size + ' seleccionadas';
+}
+
+function selectAll() {
+  LISTA_CONCESIONES.forEach(id => {
+    selected.add(id);
+    document.getElementById('sel-' + id).classList.add('selected');
+  });
+  document.getElementById('sel-count').textContent = selected.size + ' seleccionadas';
+}
+
+function clearAll() {
+  selected.clear();
+  LISTA_CONCESIONES.forEach(id => document.getElementById('sel-' + id).classList.remove('selected'));
+  document.getElementById('sel-count').textContent = '0 seleccionadas';
+  document.getElementById('results').innerHTML = '';
+}
+
+// ── RANKINGS ──
+function buildRankings() {
+  const todos = LISTA_CONCESIONES.map(id => CONCESIONES[id]);
+  const topKm = [...todos].sort((a,b) => b.km - a.km).slice(0,5);
+  const topInv = [...todos].sort((a,b) => (b.inversionInicial+b.inversionAumento2022)-(a.inversionInicial+a.inversionAumento2022)).slice(0,5);
+  const topAdendas = [...todos].sort((a,b) => b.numAdendas - a.numAdendas).slice(0,5);
+
+  const maxKm = topKm[0].km;
+  const maxInv = topInv[0].inversionInicial + topInv[0].inversionAumento2022;
+  const maxAd = topAdendas[0].numAdendas;
+
+  const mkList = (items, valFn, barMaxFn) => items.map((c,i) => {
+    const v = valFn(c);
+    const pct = Math.round(v / barMaxFn * 100);
+    return `<div class="rank-item">
+      <div class="rank-pos">${['🥇','🥈','🥉','4','5'][i]}</div>
+      <div><div class="rank-name">${c.nombre}</div><div class="rank-bar-wrap"><div class="rank-bar" style="width:${pct}%"></div></div></div>
+      <div class="rank-val">${v.toLocaleString('es-PE')}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('rankings-grid').innerHTML = `
+    <div class="rank-block">
+      <h4>Mayor longitud (km)</h4>
+      ${mkList(topKm, c => c.km, maxKm)}
+    </div>
+    <div class="rank-block">
+      <h4>Mayor inversión 2022 (M USD)</h4>
+      ${mkList(topInv, c => c.inversionInicial+c.inversionAumento2022, maxInv)}
+    </div>
+    <div class="rank-block">
+      <h4>Más adendas firmadas</h4>
+      ${mkList(topAdendas, c => c.numAdendas, maxAd)}
+    </div>
+    <div class="rank-block">
+      <h4>Datos rápidos</h4>
+      <div class="rank-item"><div class="rank-pos">📏</div><div class="rank-name">Total red concesionada</div><div class="rank-val">${STATS.totalKm.toLocaleString('es-PE')} km</div></div>
+      <div class="rank-item"><div class="rank-pos">🟢</div><div class="rank-name">Autosostenibles</div><div class="rank-val">${STATS.autosostenibles} conc.</div></div>
+      <div class="rank-item"><div class="rank-pos">🟠</div><div class="rank-name">Cofinanciadas</div><div class="rank-val">${STATS.cofinanciadas} conc.</div></div>
+      <div class="rank-item"><div class="rank-pos">0️⃣</div><div class="rank-name">Sin adendas</div><div class="rank-val">Long. Sierra T2</div></div>
+      <div class="rank-item"><div class="rank-pos">⚠</div><div class="rank-name">Sin explotación</div><div class="rank-val">IIRSA Sur T2</div></div>
+    </div>`;
+}
+
+// ── COMPARACIÓN ──
+function renderComparison() {
+  if (selected.size < 2) {
+    alert('Selecciona al menos 2 concesiones para comparar.');
+    return;
+  }
+
+  // Destruir charts previos
+  chartInstances.forEach(ch => ch.destroy());
+  chartInstances = [];
+
+  const ids = [...selected];
+  const lista = ids.map(id => CONCESIONES[id]);
+  const results = document.getElementById('results');
+
+  // Tabla comparativa
+  const vars = [
+    ['Tipo', c => c.tipo, null],
+    ['Región', c => c.region, null],
+    ['Km concesionados', c => c.km.toLocaleString('es-PE') + ' km', (vals, c) => c.km],
+    ['N° peajes', c => c.peajes, (vals, c) => c.peajes],
+    ['Plazo (años)', c => c.plazo, (vals, c) => c.plazo],
+    ['Inv. inicial (M USD)', c => '$' + c.inversionInicial + 'M', (vals, c) => c.inversionInicial],
+    ['Inv. total 2022 (M USD)', c => '$' + (c.inversionInicial+c.inversionAumento2022) + 'M', (vals, c) => c.inversionInicial+c.inversionAumento2022],
+    ['N° adendas', c => c.numAdendas, (vals, c) => -c.numAdendas],
+    ['Factor retribución', c => c.factorRetribucion, null],
+    ['Inicio explotación', c => c.inicioExplotacion, null]
+  ];
+
+  const tableRows = vars.map(([lbl, dispFn, compFn]) => {
+    const dispVals = lista.map(c => dispFn(c));
+    let bestIdx = -1, worstIdx = -1;
+    if (compFn) {
+      const numVals = lista.map(c => compFn(lista, c));
+      const max = Math.max(...numVals);
+      const min = Math.min(...numVals);
+      bestIdx = numVals.indexOf(max);
+      worstIdx = numVals.indexOf(min);
+    }
+    const cells = dispVals.map((v, i) => {
+      const cls = i === bestIdx ? ' class="best"' : (i === worstIdx ? ' class="worst"' : '');
+      return `<td${cls}>${v}</td>`;
+    }).join('');
+    return `<tr><td class="var-col">${lbl}</td>${cells}</tr>`;
+  }).join('');
+
+  const headerCells = lista.map((c, i) => {
+    const col = PALETTE[i % PALETTE.length];
+    return `<th style="border-bottom: 3px solid ${col}">${c.nombre}<br><span style="font-weight:400;font-size:0.7rem;opacity:0.8">${c.tipo}</span></th>`;
+  }).join('');
+
+  // Gráficos de barras comparativos
+  const labels = lista.map(c => c.nombre.replace('Longitudinal de la Sierra', 'Long. Sierra'));
+  const colors = lista.map((_, i) => PALETTE[i % PALETTE.length]);
+
+  results.innerHTML = `
+    <div class="card">
+      <h3>Tabla comparativa · <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--navy);">${lista.length} concesiones</span></h3>
+      <p style="font-size:0.72rem;color:var(--muted);margin-bottom:0.8rem;">🟢 mejor valor · 🟠 peor valor (en variables numéricas). En adendas: menos = mejor.</p>
+      <div style="overflow-x:auto;">
+        <table class="comp-table">
+          <thead><tr><th class="var-col">Variable</th>${headerCells}</tr></thead>
+          <tbody>${tableRows}</tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Comparativo visual</h3>
+      <div class="chart-comp-grid">
+        <div><p style="font-size:0.78rem;font-weight:600;margin-bottom:0.5rem;color:var(--muted)">Kilómetros concesionados</p><div class="chart-wrap"><canvas id="ch-km"></canvas></div></div>
+        <div><p style="font-size:0.78rem;font-weight:600;margin-bottom:0.5rem;color:var(--muted)">Inversión total 2022 (M USD)</p><div class="chart-wrap"><canvas id="ch-inv"></canvas></div></div>
+        <div><p style="font-size:0.78rem;font-weight:600;margin-bottom:0.5rem;color:var(--muted)">N° de adendas</p><div class="chart-wrap"><canvas id="ch-ad"></canvas></div></div>
+        <div><p style="font-size:0.78rem;font-weight:600;margin-bottom:0.5rem;color:var(--muted)">N° de peajes</p><div class="chart-wrap"><canvas id="ch-pj"></canvas></div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Evolución del tráfico (IMD) — comparativo</h3>
+      <div class="chart-wrap" style="height:350px"><canvas id="ch-imd-cmp"></canvas></div>
+      <p style="font-size:0.72rem;color:var(--muted);margin-top:0.5rem;">Intensidad Media Diaria — vehículos/día · Datos aproximados basados en la tesis</p>
+    </div>
+  `;
+
+  // Barras
+  const mkBar = (canvasId, data) => {
+    const ch = new Chart(document.getElementById(canvasId), {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{ data, backgroundColor: colors, borderColor: colors, borderWidth: 1, borderRadius: 4 }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { font: { size: 9 }, maxRotation: 35 }, grid: { color: 'rgba(0,0,0,0.05)' } },
+          y: { ticks: { font: { size: 10 } }, grid: { color: 'rgba(0,0,0,0.05)' } }
+        }
+      }
+    });
+    chartInstances.push(ch);
+  };
+
+  mkBar('ch-km', lista.map(c => c.km));
+  mkBar('ch-inv', lista.map(c => c.inversionInicial + c.inversionAumento2022));
+  mkBar('ch-ad', lista.map(c => c.numAdendas));
+  mkBar('ch-pj', lista.map(c => c.peajes));
+
+  // IMD comparativo (líneas)
+  const imdDatasets = lista.map((c, i) => ({
+    label: c.nombre,
+    data: c.imd.years.map((yr, j) => ({ x: yr, y: c.imd.vals[j] })),
+    borderColor: PALETTE[i % PALETTE.length],
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+    pointRadius: 3,
+    tension: 0.3
+  }));
+
+  const imdCh = new Chart(document.getElementById('ch-imd-cmp'), {
+    type: 'line',
+    data: { datasets: imdDatasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { position: 'top', labels: { font: { size: 10 }, usePointStyle: true } },
+        tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + ctx.parsed.y.toLocaleString('es-PE') + ' veh/día' } }
+      },
+      scales: {
+        x: {
+          type: 'linear',
+          ticks: { font: { size: 10 }, stepSize: 2, callback: v => v },
+          grid: { color: 'rgba(0,0,0,0.05)' }
+        },
+        y: {
+          ticks: { font: { size: 10 }, callback: v => v.toLocaleString('es-PE') },
+          grid: { color: 'rgba(0,0,0,0.05)' }
+        }
+      }
+    }
+  });
+  chartInstances.push(imdCh);
+
+  results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ── INIT ──
+buildSelector();
+buildRankings();
+</script>
+</body>
+</html>
