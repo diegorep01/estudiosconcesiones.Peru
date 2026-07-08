@@ -41,6 +41,8 @@
   .nav-links { display: flex; gap: 1.5rem; }
   .nav-links a { color: rgba(255,255,255,0.75); text-decoration: none; font-size: 0.88rem; font-weight: 500; transition: color 0.2s; }
   .nav-links a:hover, .nav-links a.active { color: var(--gold); }
+  .nav-links a.nav-traf { color: var(--gold-light); border: 1px solid rgba(245,200,66,0.4); border-radius: 6px; padding: 0.3rem 0.8rem; }
+  .nav-links a.nav-traf:hover { background: rgba(245,200,66,0.12); }
 
   /* ── HERO ── */
   .hero {
@@ -121,6 +123,39 @@
     transition: background 0.2s;
   }
   .btn-comp:hover { background: #a87828; }
+
+  /* Hero CTAs */
+  .hero-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin: 1.8rem 0 2.2rem; }
+  .btn-hero-main {
+    background: var(--gold);
+    color: var(--navy);
+    text-decoration: none;
+    border-radius: 10px;
+    padding: 0.75rem 1.8rem;
+    font-size: 0.95rem;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 4px 16px rgba(200,150,46,0.35);
+    transition: transform 0.18s, box-shadow 0.18s;
+  }
+  .btn-hero-main:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(200,150,46,0.45); }
+  .btn-hero-sec {
+    background: rgba(255,255,255,0.12);
+    color: var(--white);
+    text-decoration: none;
+    border: 1.5px solid rgba(255,255,255,0.35);
+    border-radius: 10px;
+    padding: 0.75rem 1.6rem;
+    font-size: 0.92rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: background 0.18s;
+  }
+  .btn-hero-sec:hover { background: rgba(255,255,255,0.22); }
 
   /* ── GRID CONCESIONES ── */
   .main { max-width: 1280px; margin: 0 auto; padding: 2rem 2rem 4rem; }
@@ -225,6 +260,7 @@
   <div class="nav-links">
     <a href="index.html" class="active">Portal</a>
     <a href="comparador.html">Comparador</a>
+    <a href="trafico.html" class="nav-traf">📈 Tráfico y Pronósticos</a>
   </div>
 </nav>
 
@@ -232,6 +268,10 @@
   <div class="hero-tag">Investigación Doctoral · OSITRAN 2022</div>
   <h1>Concesiones Viales<br>del <span>Perú</span></h1>
   <p>Portal de análisis interactivo de las 16 concesiones viales en operación. Datos extraídos de los Informes de Desempeño de OSITRAN y del contrato de concesión de cada proyecto.</p>
+  <div class="hero-actions">
+    <a href="trafico.html" class="btn-hero-main">📈 Tráfico Actual y Pronosticado</a>
+    <a href="comparador.html" class="btn-hero-sec">⚖ Comparar concesiones</a>
+  </div>
   <div class="kpi-strip" id="kpi-strip"></div>
 </section>
 
