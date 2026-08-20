@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Análisis Financiero Guasch — Concesiones Viales del Perú</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --navy:#0d2c54; --navy-light:#1a4070; --gold:#c8962e; --gold-light:#f5c842;
+  --bg:#f4f6f9; --white:#ffffff; --text:#1a2535; --muted:#6b7a8d;
+  --border:#dde3ec; --shadow:0 2px 12px rgba(13,44,84,.10);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text)}
+
+/* NAV */
+nav{background:var(--navy);padding:0 2rem;display:flex;align-items:center;
+    justify-content:space-between;height:64px;position:sticky;top:0;z-index:100;
+    box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.nav-brand{color:#fff;font-size:1.05rem;font-weight:700;letter-spacing:.02em;
+           display:flex;align-items:center;gap:.6rem}
+.nav-brand .gold{color:var(--gold)}
+.nav-links{display:flex;gap:1.5rem}
+.nav-links a{color:rgba(255,255,255,.75);text-decoration:none;font-size:.88rem;
+             font-weight:500;transition:color .2s}
+.nav-links a:hover,.nav-links a.active{color:var(--gold)}
+.nav-links a.nav-pill{color:var(--gold-light);border:1px solid rgba(245,200,66,.4);
+                      border-radius:6px;padding:.3rem .8rem}
+.nav-links a.nav-pill:hover,.nav-links a.nav-pill.active{background:rgba(245,200,66,.18)}
+@media(max-width:680px){.nav-links{display:none}}
+
+/* HERO */
+.hero{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-light) 60%,#1e4d82 100%);
+      color:#fff;padding:3.5rem 2rem 3rem;text-align:center;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;
+  background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E")}
+.hero-tag{display:inline-block;background:rgba(200,150,46,.2);border:1px solid var(--gold);
+          color:var(--gold);padding:.3rem 1rem;border-radius:20px;font-size:.78rem;
+          font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:1.2rem}
+.hero h1{font-size:2.2rem;font-weight:800;margin-bottom:.8rem;line-height:1.2;position:relative}
+.hero h1 span{color:var(--gold)}
+.hero p{color:rgba(255,255,255,.75);font-size:1rem;max-width:620px;margin:0 auto .8rem;
+        line-height:1.65;position:relative}
+.guasch-cite{display:inline-block;background:rgba(255,255,255,.08);
+             border-left:3px solid var(--gold);padding:.7rem 1.2rem;font-size:.82rem;
+             color:rgba(255,255,255,.65);font-style:italic;border-radius:0 8px 8px 0;
+             text-align:left;max-width:600px;margin:.8rem auto 0;position:relative}
+
+/* KPI */
+.kpi-strip{display:flex;justify-content:center;gap:1.2rem;flex-wrap:wrap;
+           margin-top:2.2rem;position:relative;z-index:1}
+.kpi-card{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);
+          backdrop-filter:blur(8px);border-radius:12px;padding:1.1rem 1.8rem;text-align:center;min-width:145px}
+.kpi-card .val{font-size:2rem;font-weight:800;color:var(--gold);line-height:1}
+.kpi-card .lbl{font-size:.76rem;color:rgba(255,255,255,.7);margin-top:.4rem;letter-spacing:.04em}
+
+/* MAIN */
+.main{max-width:1200px;margin:0 auto;padding:2.5rem 1.5rem;display:flex;flex-direction:column;gap:2rem}
+
+/* CARD */
+.card{background:var(--white);border-radius:14px;box-shadow:var(--shadow);overflow:hidden}
+.card-header{background:var(--navy);color:#fff;padding:.9rem 1.5rem;
+             display:flex;align-items:center;justify-content:space-between}
+.card-header h2{font-size:.97rem;font-weight:700}
+.card-header .sub{font-size:.78rem;color:rgba(255,255,255,.55)}
+.card-body{padding:1.5rem}
+
+/* FILTROS */
+.filtros{display:flex;gap:.8rem;flex-wrap:wrap;margin-bottom:1.2rem;align-items:center}
+.filtros label{font-size:.82rem;font-weight:600;color:var(--muted)}
+.filtros select{border:1px solid var(--border);border-radius:8px;padding:.4rem .8rem;
+               font-size:.84rem;color:var(--text);background:var(--white);outline:none;cursor:pointer}
+.filtros select:focus{border-color:var(--navy)}
+
+/* TABLA */
+.tabla-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.84rem}
+th{background:#f0f3f8;color:var(--muted);font-size:.75rem;font-weight:700;
+   text-transform:uppercase;letter-spacing:.04em;padding:.7rem .9rem;text-align:left;
+   border-bottom:2px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none}
+th:hover{color:var(--navy)}
+td{padding:.65rem .9rem;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+.row-verde td{background:#f0faf4}
+.row-verde:hover td{background:#e5f5eb}
+.row-amarillo td{background:#fefdf0}
+.row-amarillo:hover td{background:#faf8e0}
+.row-naranja td{background:#fef5ee}
+.row-naranja:hover td{background:#fdeee0}
+.row-rojo td{background:#fef0f0}
+.row-rojo:hover td{background:#fde0e0}
+.row-gris td{background:#f5f5f8}
+.row-gris:hover td{background:#eeeef2}
+.s-cell{font-size:1.2rem;text-align:center}
+.cc-link{color:var(--navy);text-decoration:none;font-weight:600}
+.cc-link:hover{color:var(--gold)}
+.badge{display:inline-block;padding:.22rem .6rem;border-radius:20px;font-size:.73rem;font-weight:700}
+.b-auto{background:#e8f5ee;color:#1a7a4a}
+.b-cofin{background:#fdf0e8;color:#c85a1a}
+.dscr-ok{color:#1a7a4a;font-weight:700}
+.dscr-warn{color:#8a6800;font-weight:700}
+.dscr-bad{color:#c0392b;font-weight:700}
+.van-pos{color:#1a7a4a;font-weight:700}
+.van-neg{color:#c0392b;font-weight:700}
+.flag-txt{font-size:.76rem;color:var(--muted)}
+.num{font-variant-numeric:tabular-nums}
+
+/* CHARTS */
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+@media(max-width:820px){.charts-grid{grid-template-columns:1fr}}
+.chart-wrap{position:relative;height:420px}
+
+/* NARRATIVE */
+.guasch-box{background:linear-gradient(135deg,#fff9f0,#fffdf8);border:1px solid #e8d8b0;
+            border-radius:12px;padding:1.5rem;margin-bottom:1rem}
+.guasch-box h3{color:var(--navy);font-size:.97rem;margin-bottom:.8rem;display:flex;align-items:center;gap:.5rem}
+.guasch-box p{font-size:.88rem;line-height:1.7}
+.guasch-box p+p{margin-top:.7rem}
+.guasch-box strong{color:var(--navy)}
+.note{font-size:.78rem;color:var(--muted);line-height:1.6;margin-top:.8rem;
+      border-top:1px solid var(--border);padding-top:.8rem}
+
+/* SUPUESTOS */
+details{border:1px solid var(--border);border-radius:10px;overflow:hidden}
+details summary{padding:.9rem 1.4rem;cursor:pointer;font-weight:600;color:var(--navy);
+               background:#f7f9fc;display:flex;align-items:center;gap:.6rem;list-style:none}
+details summary::-webkit-details-marker{display:none}
+details summary::before{content:'▶';font-size:.72rem;transition:transform .2s;color:var(--muted)}
+details[open] summary::before{transform:rotate(90deg)}
+.sup-table{width:100%;border-collapse:collapse;font-size:.83rem;margin-top:.5rem}
+.sup-table th{background:#f0f3f8;color:var(--muted);font-size:.74rem;font-weight:700;
+              text-transform:uppercase;letter-spacing:.04em;padding:.6rem 1rem;
+              border-bottom:2px solid var(--border);text-align:left}
+.sup-table td{padding:.6rem 1rem;border-bottom:1px solid var(--border)}
+.sup-table tr:last-child td{border-bottom:none}
+
+/* FOOTER */
+footer{text-align:center;padding:2rem;font-size:.8rem;color:var(--muted);
+       border-top:1px solid var(--border);margin-top:.5rem}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">🛣️ Concesiones Viales <span class="gold">Perú</span></div>
+  <div class="nav-links">
+    <a href="index.html">Portal</a>
+    <a href="comparador.html">Comparador</a>
+    <a href="trafico.html" class="nav-pill">📈 Tráfico y Pronósticos</a>
+    <a href="analisis-financiero.html" class="nav-pill active">📊 Análisis Financiero</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-tag">Análisis Guasch · 2026</div>
+  <h1>Valor Residual de las <span>16 Concesiones Viales</span></h1>
+  <p>¿Cuántas concesiones peruanas pueden cubrir su deuda con ingresos propios de peaje? Mapa financiero con IMD real OSITRAN 2003–2025.</p>
+  <div class="guasch-cite">
+    "El 75% de las concesiones de infraestructura en América Latina se renegocian dentro de los primeros 3 años, principalmente cuando el valor residual cae por debajo de lo proyectado en la licitación." — J. L. Guasch, <em>Granting and Renegotiating Infrastructure Concessions</em>, World Bank 2004
+  </div>
+  <div class="kpi-strip" id="kpi-strip"></div>
+</section>
+
+<div class="main">
+
+  <!-- TABLA -->
+  <div class="card">
+    <div class="card-header">
+      <h2>📋 Mapa Financiero — 16 Concesiones</h2>
+      <span class="sub">IMD real OSITRAN · Año de corte: 2026</span>
+    </div>
+    <div class="card-body">
+      <div class="filtros">
+        <label>Filtrar:</label>
+        <select id="fil-tipo" onchange="renderTabla()">
+          <option value="">Todos los tipos</option>
+          <option value="Autosostenible">Autosostenible</option>
+          <option value="Cofinanciado">Cofinanciado</option>
+        </select>
+        <select id="fil-sem" onchange="renderTabla()">
+          <option value="">Todos los semáforos</option>
+          <option value="verde">🟢 Viable</option>
+          <option value="amarillo">🟡 Subsidio moderado</option>
+          <option value="naranja">🟠 Alto subsidio</option>
+          <option value="rojo">🔴 Renegociación probable</option>
+          <option value="gris">⚫ Sin análisis</option>
+        </select>
+      </div>
+      <div class="tabla-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th></th>
+              <th data-col="nombre">Concesión ⇅</th>
+              <th data-col="tipo">Tipo ⇅</th>
+              <th data-col="km">Km ⇅</th>
+              <th data-col="años_restantes">Años rest. ⇅</th>
+              <th data-col="imd_last">IMD último ⇅</th>
+              <th data-col="cagr_real">CAGR real ⇅</th>
+              <th data-col="dscr_min">DSCR mín. ⇅</th>
+              <th data-col="van">VAN resid. (MS/) ⇅</th>
+              <th data-col="num_adendas">Adendas ⇅</th>
+              <th>Flag Guasch</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-body"></tbody>
+        </table>
+      </div>
+      <p style="font-size:.76rem;color:var(--muted);margin-top:.8rem">Haz clic en el nombre de la concesión para ver su dashboard individual.</p>
+    </div>
+  </div>
+
+  <!-- GRÁFICOS -->
+  <div class="charts-grid">
+    <div class="card">
+      <div class="card-header">
+        <h2>📊 DSCR Mínimo por Concesión</h2>
+        <span class="sub">Umbral covenant: 1.20×</span>
+      </div>
+      <div class="card-body">
+        <div class="chart-wrap"><canvas id="chart-dscr"></canvas></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <h2>💰 VAN Residual (M soles)</h2>
+        <span class="sub">Concesiones vigentes con IMD real</span>
+      </div>
+      <div class="card-body">
+        <div class="chart-wrap"><canvas id="chart-van"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NARRATIVA -->
+  <div class="card">
+    <div class="card-header"><h2>📖 Hipótesis Guasch aplicada al Perú</h2></div>
+    <div class="card-body">
+      <div class="guasch-box">
+        <h3>📌 ¿Qué mide este análisis?</h3>
+        <p>Guasch (2004) documentó que el 75% de las concesiones LAC se renegocian en los primeros años cuando el tráfico cae por debajo de las proyecciones del concesionario, o cuando éste sobreofertó en la licitación. El DSCR (cobertura del servicio de deuda) es el indicador central: si cae por debajo de 1.20x, el covenant del contrato se activa y se abre la ventana de renegociación.</p>
+        <p>Este análisis calcula el DSCR con <strong>ingresos solo de peaje</strong> para cada concesión, usando IMD histórico real OSITRAN (2003–2025). Para las cofinanciadas, el Estado cubre la diferencia; el flag indica cuánto depende cada contrato del subsidio público.</p>
+        <p><strong>Hallazgo clave:</strong> IIRSA Sur T2 (Urcos–Inambari, 300 km) cubre solo el <strong>2% de su servicio de deuda con ingresos de peaje</strong> — con apenas ~2,013 veh/día y un CAPEX de USD 705M. El Estado peruano absorbe el 98% restante. Es la candidata más fuerte para la narrativa Guasch en Perú, con 8 adendas firmadas históricamente.</p>
+      </div>
+      <p class="note">⚠️ Para cofinanciadas, el DSCR se calcula <em>sin</em> incluir PAO/PAMO del Estado — el subsidio cubre la diferencia; el flag indica dependencia fiscal, no incapacidad del concesionario. · Costa-Sierra: IMD aproximado, excluida del análisis cuantitativo. · Empalme 1B: vencida en 2025. · Siguiente paso (Fase C): contrastar modelo vs renegociaciones históricas reales (ProInversión).</p>
+    </div>
+  </div>
+
+  <!-- SUPUESTOS -->
+  <div class="card">
+    <div class="card-header"><h2>⚙️ Supuestos Estandarizados</h2></div>
+    <div class="card-body">
+      <details>
+        <summary>Ver supuestos metodológicos y fuentes</summary>
+        <div style="padding:1rem 0">
+          <table class="sup-table">
+            <thead><tr><th>Parámetro</th><th>Valor</th><th>Fuente / Justificación</th></tr></thead>
+            <tbody id="sup-body"></tbody>
+          </table>
+        </div>
+      </details>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  Datos IMD: OSITRAN — Informes de Desempeño 2003–2025 &nbsp;·&nbsp;
+  CAPEX: Informes OSITRAN hasta 2022 &nbsp;·&nbsp;
+  Metodología: Guasch (2004) · World Bank &nbsp;·&nbsp;
+  Autor: Diego Cisneros Herrera, agosto 2026
+</footer>
+
+<script>
+// ── SUPUESTOS ────────────────────────────────────────────────────────────────
+const S = {
+  TARIFA_AUTO: 12.0, TARIFA_COFIN: 5.0, OM_RATIO: 0.18,
+  WACC: 0.09, KD: 0.08, LTV: 0.70, TC: 3.75, DSCR_MIN: 1.20,
+  CAGR_MAX: 0.050, CAGR_MIN: 0.000, AÑO_ANALISIS: 2026,
+};
+const SUP_ROWS = [
+  ['Tarifa autosostenible','S/ 12 / vehículo','Promedio ponderado tarifas autosostenibles OSITRAN Reporte Tarifas 2024'],
+  ['Tarifa cofinanciada','S/ 5 / vehículo','Tarifas reducidas — concesiones con subsidio PAO/PAMO (OSITRAN)'],
+  ['O&M','18% de ingresos brutos','Benchmark Informes de Desempeño OSITRAN promedio'],
+  ['WACC','9%','Tasa descuento infraestructura LAC — World Bank 2021'],
+  ['Tasa deuda','8%','Benchmark financiero Perú infraestructura — Fitch LAC 2023'],
+  ['LTV (Apalancamiento)','70%','Modelo Financiero TFM Diego Cisneros Herrera, 2025'],
+  ['Tipo de cambio','S/ 3.75 / USD','BCR promedio 2024'],
+  ['DSCR mínimo (covenant)','1.20×','Estándar LAC concesiones viales — Guasch 2004'],
+  ['CAGR máx. proyección','5% anual','Techo conservador de crecimiento IMD'],
+  ['CAGR mín. proyección','0% anual','No se proyectan caídas (floor conservador)'],
+  ['Año de corte','2026','Año del análisis residual'],
+];
+
+// ── DATOS ────────────────────────────────────────────────────────────────────
+const CONCESIONES = [
+  {id:'red-vial-5',nombre:'Red Vial N°5',ruta:'Ancón – Huacho – Pativilca',
+   tipo:'Autosostenible',region:'Costa Norte',km:183,plazo:25,año_inicio:2003,año_fin:2028,
+   capex_musd:141,num_adendas:5,imd_es_real:true,
+   imd_years:[2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025],
+   imd_vals:[5203,30173,30463,32159,35366,38377,39595,43924,48870,53542,57007,59251,65896,72421,74445,78272,80480,69612,93795,96453,94842,97416,100452]},
+  {id:'iirsa-norte',nombre:'IIRSA Norte',ruta:'Paita – Yurimaguas',
+   tipo:'Cofinanciado',region:'Norte / Oriente',km:1041,plazo:25,año_inicio:2006,año_fin:2031,
+   capex_musd:641,num_adendas:7,imd_es_real:true,
+   imd_years:[2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025],
+   imd_vals:[17639,22612,23764,30382,32790,33790,33679,31088,30479,31306,27629,35140,34522,32895,34666,38620]},
+  {id:'iirsa-sur-t2',nombre:'IIRSA Sur T2',ruta:'Urcos – Inambari',
+   tipo:'Cofinanciado',region:'Sur / Oriente',km:300,plazo:25,año_inicio:2006,año_fin:2031,
+   capex_musd:705,num_adendas:8,imd_es_real:true,
+   imd_years:[2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025],
+   imd_vals:[233,868,909,978,1113,1233,1328,1243,1113,1782,1577,1316,1662,2013]},
+  {id:'iirsa-sur-t3',nombre:'IIRSA Sur T3',ruta:'Inambari – Iñapari',
+   tipo:'Cofinanciado',region:'Sur / Oriente',km:403,plazo:25,año_inicio:2005,año_fin:2030,
+   capex_musd:687,num_adendas:7,imd_es_real:true,
+   imd_years:[2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025],
+   imd_vals:[4120,5697,5455,5856,6961,7065,7812,7382,6094,8745,7965,2974,7140,10899]},
+  {id:'iirsa-sur-t4',nombre:'IIRSA Sur T4',ruta:'Inambari – Azángaro',
+   tipo:'Cofinanciado',region:'Sur',km:306,plazo:25,año_inicio:2005,año_fin:2030,
+   capex_musd:664,num_adendas:7,imd_es_real:true,
+   imd_years:[2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2024,2025],
+   imd_vals:[1295,3716,4009,4078,4116,5684,6730,4328,4614,8178,6694,6340,3000,5420]},
+  {id:'red-vial-6',nombre:'Red Vial N°6',ruta:'Pucusana – Cerro Azul – Ica',
+   tipo:'Autosostenible',region:'Costa Sur',km:222,plazo:30,año_inicio:2005,año_fin:2035,
+   capex_musd:258,num_adendas:9,imd_es_real:true,
+   imd_years:[2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025],
+   imd_vals:[19051,43024,44928,50058,53019,57694,63403,70802,75541,79359,87105,91864,96208,103066,108017,92267,122792,126090,123426,131136,139839]},
+  {id:'empalme-1b',nombre:'Empalme 1B',ruta:'Buenos Aires – Canchaque',
+   tipo:'Cofinanciado',region:'Norte',km:77,plazo:15,año_inicio:2010,año_fin:2025,
+   capex_musd:39,num_adendas:3,imd_es_real:true,
+   imd_years:[2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025],
+   imd_vals:[417,511,513,600,657,644,787,841,682,1057,1100,715,1121,1161]},
+  {id:'iirsa-sur-t1',nombre:'IIRSA Sur T1',ruta:'San Juan de Marcona – Urcos',
+   tipo:'Cofinanciado',region:'Sur',km:758,plazo:25,año_inicio:2007,año_fin:2032,
+   capex_musd:145,num_adendas:2,imd_es_real:true,
+   imd_years:[2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025],
+   imd_vals:[483,7225,8097,9164,9935,10647,12106,12510,14024,14238,15359,16379,18128,13815,19206,19632,12256,12899,14634]},
+  {id:'iirsa-sur-t5',nombre:'IIRSA Sur T5',ruta:'Matarani – Azángaro – Ilo',
+   tipo:'Cofinanciado',region:'Sur',km:855,plazo:25,año_inicio:2007,año_fin:2032,
+   capex_musd:309,num_adendas:4,imd_es_real:true,
+   imd_years:[2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025],
+   imd_vals:[36573,40074,44225,46371,51014,54814,58850,66085,71500,70464,69739,73631,63351,83649,87500,60429,63547,71270]},
+  {id:'red-vial-4',nombre:'Red Vial N°4',ruta:'Pativilca – Dv. Salaverry – Trujillo',
+   tipo:'Autosostenible',region:'Costa Norte',km:356,plazo:25,año_inicio:2009,año_fin:2034,
+   capex_musd:286,num_adendas:4,imd_es_real:true,
+   imd_years:[2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025],
+   imd_vals:[28375,38445,47020,51145,53261,55550,59563,64092,36970,57837,63471,62822,80136,81385,76039,73588,82595]},
+  {id:'ovalo-chancay',nombre:'Óvalo Chancay',ruta:'Chancay – Huaral – Acos',
+   tipo:'Cofinanciado',region:'Costa Centro',km:77,plazo:15,año_inicio:2018,año_fin:2033,
+   capex_musd:42,num_adendas:2,imd_es_real:true,
+   imd_years:[2019,2020,2021,2022,2023,2024,2025],
+   imd_vals:[1443,992,1363,1509,1394,1437,1533]},
+  {id:'costa-sierra',nombre:'Costa-Sierra',ruta:'Dv. Quilca – Dv. Matarani – Ilo',
+   tipo:'Cofinanciado',region:'Sur',km:47,plazo:15,año_inicio:2019,año_fin:2034,
+   capex_musd:24,num_adendas:1,imd_es_real:false,
+   imd_years:[2019,2020,2021,2022],imd_vals:[900,680,1350,1600]},
+  {id:'autopista-sol',nombre:'Autopista del Sol',ruta:'Trujillo – Sullana',
+   tipo:'Autosostenible',region:'Costa Norte',km:475,plazo:25,año_inicio:2009,año_fin:2034,
+   capex_musd:493,num_adendas:2,imd_es_real:true,
+   imd_years:[2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025],
+   imd_vals:[13517,51409,57663,61101,64404,66719,72627,76798,69136,84672,85483,75278,97245,96568,89542,96484,106333]},
+  {id:'iirsa-centro',nombre:'IIRSA Centro',ruta:'Lima – Huancayo',
+   tipo:'Autosostenible',region:'Centro',km:377,plazo:25,año_inicio:2010,año_fin:2035,
+   capex_musd:154,num_adendas:2,imd_es_real:true,
+   imd_years:[2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025],
+   imd_vals:[5500,32036,34797,36798,38207,40405,42603,42701,45675,46799,36714,49023,48047,45641,45940,46722]},
+  {id:'panamericana',nombre:'Tramo Vial Panamericana',ruta:'Dv. Quilca – Dv. Matarani – Tacna',
+   tipo:'Autosostenible',region:'Sur',km:429,plazo:25,año_inicio:2013,año_fin:2038,
+   capex_musd:134,num_adendas:2,imd_es_real:true,
+   imd_years:[2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025],
+   imd_vals:[10508,13149,14060,13926,14648,15042,15720,11549,15282,17097,17094,18563,20009]},
+  {id:'long-sierra-t2',nombre:'Longitudinal de la Sierra T2',ruta:'Ciudad de Dios – Cajamarca – Chiple',
+   tipo:'Cofinanciado',region:'Norte Sierra',km:875,plazo:25,año_inicio:2014,año_fin:2039,
+   capex_musd:269,num_adendas:0,imd_es_real:true,
+   imd_years:[2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025],
+   imd_vals:[5371,16770,17596,7957,17588,19535,15118,19450,20855,21306,22470,23539]},
+];
+
+// ── CÁLCULOS ─────────────────────────────────────────────────────────────────
+function cagrFn(yrs,vals){
+  if(yrs.length<2||vals[0]===0)return 0;
+  const n=yrs[yrs.length-1]-yrs[0];
+  return n===0?0:Math.pow(vals[vals.length-1]/vals[0],1/n)-1;
+}
+function annuity(p,r,n){
+  if(n<=0)return 0;
+  if(r===0)return p/n;
+  return p*r/(1-Math.pow(1+r,-n));
+}
+function npvFn(r,cf){return cf.reduce((a,v,i)=>a+v/Math.pow(1+r,i+1),0)}
+function avg(a){return a.length?a.reduce((s,v)=>s+v,0)/a.length:0}
+
+function analizar(c){
+  const ar=Math.max(c.año_fin-S.AÑO_ANALISIS,0);
+  const imd0=c.imd_vals[c.imd_vals.length-1];
+  const cr=cagrFn(c.imd_years,c.imd_vals);
+  const cp=Math.max(Math.min(cr,S.CAGR_MAX),S.CAGR_MIN);
+  const imdp=Array.from({length:ar},(_,i)=>imd0*Math.pow(1+cp,i+1));
+  const tar=c.tipo==='Autosostenible'?S.TARIFA_AUTO:S.TARIFA_COFIN;
+  const ing=imdp.map(v=>v*tar*365/1e6);
+  const ebitda=ing.map(v=>v*(1-S.OM_RATIO));
+  const capMs=c.capex_musd*S.TC;
+  const dMs=capMs*S.LTV;
+  const srv=annuity(dMs,S.KD,c.plazo);
+  let dp=0,dm=0,van=0;
+  if(ar>0&&srv>0){
+    const dv=ebitda.map(e=>e/srv);
+    dp=avg(dv); dm=Math.min(...dv);
+  }
+  const fcl=ebitda.map(e=>e-srv);
+  van=fcl.length?npvFn(S.WACC,fcl):0;
+  const ep=avg(ebitda);
+
+  let flag,sem,sc;
+  if(!c.imd_es_real){flag='N/D — IMD aproximado';sem='⚫';sc='gris';}
+  else if(ar<=0){flag='CONCESIÓN VENCIDA';sem='⚫';sc='gris';}
+  else if(c.tipo==='Cofinanciado'){
+    const cob=srv>0?ep/srv*100:0;
+    if(cob<30){flag=`ALTO SUBSIDIO REQUERIDO (${Math.round(cob)}% cubierto por peaje)`;sem='🟠';sc='naranja';}
+    else if(dm<S.DSCR_MIN){flag=`SUBSIDIO MODERADO (${Math.round(cob)}% cubierto por peaje)`;sem='🟡';sc='amarillo';}
+    else{flag='VIABLE (cofinanciada)';sem='🟢';sc='verde';}
+  } else {
+    if(van<0&&dm<S.DSCR_MIN){flag='RENEGOCIACIÓN MUY PROBABLE';sem='🔴';sc='rojo';}
+    else if(van<0||dm<S.DSCR_MIN){flag='RENEGOCIACIÓN POSIBLE';sem='🟠';sc='naranja';}
+    else{flag='VIABLE';sem='🟢';sc='verde';}
+  }
+
+  return {id:c.id,nombre:c.nombre,tipo:c.tipo,km:c.km,año_fin:c.año_fin,
+          años_restantes:ar,imd_last:imd0,cagr_real:Math.round(cr*10000)/100,
+          dscr_min:Math.round(dm*100)/100,van:Math.round(van*10)/10,
+          num_adendas:c.num_adendas,flag,sem,sc};
+}
+
+const RES = CONCESIONES.map(analizar);
+
+// ── KPIs ─────────────────────────────────────────────────────────────────────
+function renderKPIs(){
+  const ct={verde:0,amarillo:0,naranja:0,rojo:0,gris:0};
+  RES.forEach(r=>ct[r.sc]++);
+  document.getElementById('kpi-strip').innerHTML=[
+    {v:ct.verde+ct.amarillo+(ct.naranja>0?0:0),
+     lbl:'🟢 Viables',vv:ct.verde},
+    {v:ct.naranja,lbl:'🟠 Alto subsidio'},
+    {v:ct.amarillo,lbl:'🟡 Subsidio moderado'},
+    {v:ct.rojo,lbl:'🔴 Renegoc. probable'},
+    {v:ct.gris,lbl:'⚫ Sin análisis'},
+  ].map(k=>`<div class="kpi-card">
+    <div class="val">${k.vv!==undefined?k.vv:k.v}</div>
+    <div class="lbl">${k.lbl}</div>
+  </div>`).join('');
+
+  // Reescribir con valores correctos
+  document.getElementById('kpi-strip').innerHTML=[
+    {v:ct.verde,lbl:'🟢 Viables'},
+    {v:ct.naranja,lbl:'🟠 Alto subsidio'},
+    {v:ct.amarillo,lbl:'🟡 Subsidio moderado'},
+    {v:ct.rojo,lbl:'🔴 Renegoc. probable'},
+    {v:ct.gris,lbl:'⚫ Sin análisis'},
+  ].map(k=>`<div class="kpi-card">
+    <div class="val">${k.v}</div>
+    <div class="lbl">${k.lbl}</div>
+  </div>`).join('');
+}
+
+// ── TABLA ─────────────────────────────────────────────────────────────────────
+let sortCol='dscr_min', sortAsc=true;
+
+function renderTabla(){
+  const tipo=document.getElementById('fil-tipo').value;
+  const sem=document.getElementById('fil-sem').value;
+  let datos=[...RES];
+  if(tipo) datos=datos.filter(r=>r.tipo===tipo);
+  if(sem)  datos=datos.filter(r=>r.sc===sem);
+  datos.sort((a,b)=>{
+    let va=a[sortCol],vb=b[sortCol];
+    if(typeof va==='string') va=va.toLowerCase(),vb=vb.toLowerCase();
+    return sortAsc?(va>vb?1:-1):(va<vb?1:-1);
+  });
+
+  const fmtN=n=>n.toLocaleString('es-PE');
+  const dscrClass=v=>v<=0?'':'dscr-'+(v>=1.5?'ok':v>=1.2?'warn':'bad');
+  const vanClass=v=>v>=0?'van-pos':'van-neg';
+
+  document.getElementById('tabla-body').innerHTML=datos.map(r=>`
+    <tr class="row-${r.sc}">
+      <td class="s-cell">${r.sem}</td>
+      <td><a class="cc-link" href="concesion.html?id=${r.id}">${r.nombre}</a></td>
+      <td><span class="badge ${r.tipo==='Autosostenible'?'b-auto':'b-cofin'}">${r.tipo}</span></td>
+      <td class="num">${fmtN(r.km)}</td>
+      <td class="num">${r.años_restantes>0?r.años_restantes:'—'}</td>
+      <td class="num">${fmtN(r.imd_last)}</td>
+      <td class="num">${r.cagr_real>0?'+':''}${r.cagr_real.toFixed(1)}%</td>
+      <td class="num ${dscrClass(r.dscr_min)}">${r.dscr_min>0?r.dscr_min.toFixed(2)+'×':'—'}</td>
+      <td class="num ${vanClass(r.van)}">${r.van>=0?'+':''}${fmtN(r.van)}</td>
+      <td class="num">${r.num_adendas}</td>
+      <td class="flag-txt">${r.flag}</td>
+    </tr>`).join('');
+}
+
+// Ordenar por columna al hacer clic en th
+document.querySelectorAll('th[data-col]').forEach(th=>{
+  th.onclick=()=>{
+    if(sortCol===th.dataset.col) sortAsc=!sortAsc;
+    else{sortCol=th.dataset.col;sortAsc=true;}
+    renderTabla();
+  };
+});
+
+// ── GRÁFICO DSCR ─────────────────────────────────────────────────────────────
+function buildDSCR(){
+  const datos=RES.filter(r=>r.años_restantes>0&&r.dscr_min>0)
+    .sort((a,b)=>a.dscr_min-b.dscr_min);
+
+  const colorMap={verde:'rgba(26,122,74,.75)',amarillo:'rgba(200,160,0,.75)',
+                  naranja:'rgba(200,100,0,.75)',rojo:'rgba(192,57,43,.75)',gris:'rgba(120,130,145,.5)'};
+
+  new Chart(document.getElementById('chart-dscr'),{
+    type:'bar',
+    data:{
+      labels:datos.map(r=>r.nombre.replace('Longitudinal de la Sierra','Long. Sierra')),
+      datasets:[{
+        label:'DSCR mínimo',
+        data:datos.map(r=>r.dscr_min),
+        backgroundColor:datos.map(r=>colorMap[r.sc]),
+        borderRadius:4,
+      }]
+    },
+    options:{
+      indexAxis:'y',
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:c=>`DSCR mín: ${c.raw.toFixed(2)}×`}},
+        annotation:{annotations:{line1:{type:'line',xMin:1.2,xMax:1.2,
+          borderColor:'#c0392b',borderWidth:2,borderDash:[5,4],
+          label:{content:'Umbral 1.20×',display:true,position:'start',
+                 backgroundColor:'rgba(192,57,43,.8)',font:{size:11}}}}}
+      },
+      scales:{
+        x:{title:{display:true,text:'DSCR mínimo (×)',font:{size:11}},min:0,
+           grid:{color:'rgba(0,0,0,.05)'}},
+        y:{ticks:{font:{size:11}},grid:{display:false}}
+      }
+    }
+  });
+}
+
+// ── GRÁFICO VAN ──────────────────────────────────────────────────────────────
+function buildVAN(){
+  const datos=RES.filter(r=>r.años_restantes>0&&r.dscr_min!==0)
+    .sort((a,b)=>a.van-b.van);
+
+  const colorMap={verde:'rgba(26,122,74,.75)',amarillo:'rgba(200,160,0,.75)',
+                  naranja:'rgba(200,100,0,.75)',rojo:'rgba(192,57,43,.75)',gris:'rgba(120,130,145,.5)'};
+
+  new Chart(document.getElementById('chart-van'),{
+    type:'bar',
+    data:{
+      labels:datos.map(r=>r.nombre.replace('Longitudinal de la Sierra','Long. Sierra')
+                               .replace('Tramo Vial ','').replace('Autopista del ','Aut. del ')),
+      datasets:[{
+        label:'VAN residual (M S/)',
+        data:datos.map(r=>r.van),
+        backgroundColor:datos.map(r=>colorMap[r.sc]),
+        borderRadius:4,
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:c=>`VAN: ${c.raw>=0?'+':''}${c.raw.toFixed(1)} M S/`}},
+        annotation:{annotations:{line0:{type:'line',yMin:0,yMax:0,
+          borderColor:'rgba(0,0,0,.25)',borderWidth:1.5}}}
+      },
+      scales:{
+        x:{ticks:{font:{size:10},maxRotation:45},grid:{display:false}},
+        y:{title:{display:true,text:'M soles',font:{size:11}},
+           grid:{color:'rgba(0,0,0,.05)'}}
+      }
+    }
+  });
+}
+
+// ── SUPUESTOS ─────────────────────────────────────────────────────────────────
+function renderSup(){
+  document.getElementById('sup-body').innerHTML=SUP_ROWS.map(([p,v,f])=>
+    `<tr><td><strong>${p}</strong></td><td>${v}</td><td style="color:var(--muted)">${f}</td></tr>`
+  ).join('');
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+renderKPIs();
+renderTabla();
+renderSup();
+
+// Chart.js annotation plugin (si no está cargado, continúa sin él)
+if(typeof Chart!=='undefined'){
+  try{
+    Chart.register({
+      id:'annotation',
+      beforeDraw(chart){
+        const ann=chart.options?.plugins?.annotation?.annotations;
+        if(!ann)return;
+        const ctx=chart.ctx;
+        Object.values(ann).forEach(a=>{
+          if(a.type!=='line')return;
+          ctx.save();
+          ctx.strokeStyle=a.borderColor||'red';
+          ctx.lineWidth=a.borderWidth||1;
+          if(a.borderDash)ctx.setLineDash(a.borderDash);
+          ctx.beginPath();
+          const isY=a.yMin!==undefined&&a.xMin===undefined;
+          if(isY){
+            const yScale=chart.scales.y;
+            const y=yScale.getPixelForValue(a.yMin??0);
+            ctx.moveTo(chart.chartArea.left,y);
+            ctx.lineTo(chart.chartArea.right,y);
+          } else {
+            const xScale=chart.scales.x;
+            const x=xScale.getPixelForValue(a.xMin??0);
+            ctx.moveTo(x,chart.chartArea.top);
+            ctx.lineTo(x,chart.chartArea.bottom);
+            if(a.label?.display){
+              ctx.restore();ctx.save();
+              ctx.fillStyle=a.label.backgroundColor||'rgba(0,0,0,.7)';
+              ctx.font=`bold ${a.label.font?.size||12}px sans-serif`;
+              ctx.fillText(a.label.content,x+4,chart.chartArea.top+16);
+            }
+          }
+          ctx.stroke();
+          ctx.restore();
+        });
+      }
+    });
+  }catch(e){}
+  buildDSCR();
+  buildVAN();
+}
+</script>
+</body>
+</html>
