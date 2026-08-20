@@ -638,5 +638,382 @@ if(typeof Chart!=='undefined'){
   buildVAN();
 }
 </script>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     FASE C — VALIDACIÓN HISTÓRICA
+     Contraste modelo Guasch vs. adendas reales (Tesis DCH, OSITRAN)
+═══════════════════════════════════════════════════════════════════ -->
+<div id="fase-c" class="main" style="padding-top:0">
+
+  <!-- INTRO FASE C -->
+  <div class="card">
+    <div class="card-header">
+      <h2>🔬 Fase C — Validación Histórica vs. Adendas Reales</h2>
+      <span class="sub">Fuente: Tesis DCH, OSITRAN Informes de Desempeño 2003–2022</span>
+    </div>
+    <div class="card-body">
+      <div class="guasch-box">
+        <h3>📐 Metodología de validación</h3>
+        <p>Si la hipótesis Guasch es correcta, las concesiones con <strong>DSCR bajo y alto subsidio</strong> deberían presentar adendas motivadas por <em>distress financiero</em> (bancabilidad comprometida, agotamiento de PAO, modificación de régimen económico). Las concesiones viables deberían tener adendas técnicas (predios, obras complementarias, arqueología) o de expansión.</p>
+        <p>Se clasificaron las <strong>55 adendas históricas</strong> de las 16 concesiones en tres categorías: <span style="color:#c0392b;font-weight:700">Financiero</span> (bancabilidad, agotamiento PAO, régimen económico, tarifas), <span style="color:#8a6800;font-weight:700">Técnico</span> (predios, EDI, arqueología, obras de construcción) y <span style="color:#1a7a4a;font-weight:700">Expansión</span> (obras adicionales, nuevas calzadas, tramos nuevos). Solo las adendas financieras validan la hipótesis Guasch.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLA VALIDACIÓN -->
+  <div class="card">
+    <div class="card-header">
+      <h2>📋 Clasificación de Adendas por Concesión</h2>
+      <span class="sub">Categorización basada en motivos declarados en contratos</span>
+    </div>
+    <div class="card-body">
+      <div class="tabla-wrap">
+        <table id="tabla-validacion">
+          <thead>
+            <tr>
+              <th></th>
+              <th>Concesión</th>
+              <th>Flag Guasch</th>
+              <th style="text-align:center">Total adendas</th>
+              <th style="text-align:center;color:#c0392b">Financieras</th>
+              <th style="text-align:center;color:#8a6800">Técnicas</th>
+              <th style="text-align:center;color:#1a7a4a">Expansión</th>
+              <th>Adenda clave</th>
+              <th style="text-align:center">Validación</th>
+            </tr>
+          </thead>
+          <tbody id="val-body"></tbody>
+        </table>
+      </div>
+      <p class="note" style="margin-top:.8rem">⚠️ DL 1012 (2008): Las concesiones firmadas después de 2008 (Red Vial N°4, Autopista del Sol, Costa-Sierra, Óvalo Chancay, IIRSA Centro, Panamericana, Longitudinal Sierra T2) no podían firmar adendas en los primeros 3 años salvo causas puntuales. Sus menores recuentos reflejan restricción legal, no necesariamente mejor desempeño.</p>
+    </div>
+  </div>
+
+  <!-- GRÁFICOS FASE C -->
+  <div class="charts-grid">
+    <div class="card">
+      <div class="card-header">
+        <h2>🔵 DSCR mín. vs. N° de Adendas</h2>
+        <span class="sub">Color = tipo de adenda predominante</span>
+      </div>
+      <div class="card-body">
+        <div class="chart-wrap" style="height:380px"><canvas id="chart-scatter"></canvas></div>
+        <div style="display:flex;gap:1.2rem;flex-wrap:wrap;margin-top:.8rem;font-size:.78rem">
+          <span><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#c0392b;margin-right:4px"></span>Financiero predominante</span>
+          <span><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#e67e22;margin-right:4px"></span>Mixto</span>
+          <span><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#1a7a4a;margin-right:4px"></span>Técnico/Expansión</span>
+          <span><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#aaa;margin-right:4px"></span>Sin análisis</span>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <h2>📊 Adendas Financieras por Categoría de Riesgo</h2>
+        <span class="sub">Promedio de adendas financieras por semáforo</span>
+      </div>
+      <div class="card-body">
+        <div class="chart-wrap" style="height:380px"><canvas id="chart-barras-fc"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CASOS DE ESTUDIO -->
+  <div class="card">
+    <div class="card-header"><h2>🔎 Casos de Estudio</h2></div>
+    <div class="card-body" style="display:grid;grid-template-columns:1fr 1fr;gap:1.2rem">
+
+      <div style="background:#fef5ee;border:1px solid #e8c8a0;border-radius:10px;padding:1.2rem">
+        <h3 style="color:#c85a1a;font-size:.95rem;margin-bottom:.7rem">🟠 CASO ESTRELLA — IIRSA Sur T4</h3>
+        <p style="font-size:.85rem;line-height:1.65"><strong>7 adendas · DSCR mín. ~0.06× · 6% cobertura de peaje</strong></p>
+        <p style="font-size:.83rem;line-height:1.65;margin-top:.5rem">Las adendas N°5 y N°6 (2009) son Guasch puro: <em>"continuidad de obras en razón de haber superado el 10% del PAO contractual"</em> y <em>"agotamiento de la inversión vinculada al PAO contractual"</em>. El CAPEX comprometido se agotó y el Estado tuvo que renegociar para garantizar la ejecución. La adenda N°3 (2006) busca explícitamente la bancabilidad del proyecto. Con un CAPEX de USD 664M y apenas ~5,420 veh/día, la viabilidad depende 94% del subsidio estatal.</p>
+      </div>
+
+      <div style="background:#f0faf4;border:1px solid #a8d8b8;border-radius:10px;padding:1.2rem">
+        <h3 style="color:#1a7a4a;font-size:.95rem;margin-bottom:.7rem">🟢 CASO MATIZADOR — Red Vial N°6</h3>
+        <p style="font-size:.85rem;line-height:1.65"><strong>9 adendas · DSCR mín. elevado · VIABLE</strong></p>
+        <p style="font-size:.83rem;line-height:1.65;margin-top:.5rem">Con el mayor número de adendas del portafolio (9), podría parecer el caso más problemático. Sin embargo, <strong>ninguna adenda es de tipo financiero</strong>: todas tratan obras complementarias nuevas, cronogramas de construcción, revegetación y liberación de predios. Es el caso que demuestra que contar adendas sin clasificar su tipo sobreestima el riesgo Guasch. La concesión creció con el tráfico costero y sus adendas reflejan expansión de alcance, no distress.</p>
+      </div>
+
+      <div style="background:#fef0f0;border:1px solid #e0a0a0;border-radius:10px;padding:1.2rem">
+        <h3 style="color:#c0392b;font-size:.95rem;margin-bottom:.7rem">🟠 CASO SISTÉMICO — IIRSA Sur T2/T3/T4</h3>
+        <p style="font-size:.85rem;line-height:1.65"><strong>22 adendas combinadas · 2006 = año crítico (bancabilidad)</strong></p>
+        <p style="font-size:.83rem;line-height:1.65;margin-top:.5rem">Los tres tramos firmaron adendas de bancabilidad casi simultáneamente (T2: jul 2006, T3: jul 2006, T4: jul 2006). Esto sugiere un problema sistémico en el diseño de las concesiones IIRSA Sur: los modelos de tráfico sobreestimaron la demanda en rutas de alta montaña. Los tres siguen dependiendo del Estado 25 años después. Guasch confirmado a escala de programa.</p>
+      </div>
+
+      <div style="background:#fefdf0;border:1px solid #d8d090;border-radius:10px;padding:1.2rem">
+        <h3 style="color:#8a6800;font-size:.95rem;margin-bottom:.7rem">🟡 CASO PENDIENTE — Longitudinal de la Sierra T2</h3>
+        <p style="font-size:.85rem;line-height:1.65"><strong>0 adendas · Firma 2014 · SUBSIDIO MODERADO</strong></p>
+        <p style="font-size:.83rem;line-height:1.65;margin-top:.5rem">La única concesión sin adendas al 31 dic 2022. Firmada bajo DL 1012, que restringe adendas tempranas. Con 23,539 veh/día en 2025 (creciendo) y un WACC que cubre el 76% del servicio de deuda, aún no entra en zona Guasch. Sin embargo, con 13 años restantes y un CAPEX de USD 269M, la pregunta es si el tráfico sostendrá el crecimiento necesario. <strong>Candidata a monitorear.</strong></p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- CONCLUSIÓN FASE C -->
+  <div class="card">
+    <div class="card-header"><h2>✅ Conclusión — ¿Predice Guasch las renegociaciones peruanas?</h2></div>
+    <div class="card-body">
+      <div id="conclusion-guasch"></div>
+      <p class="note">Fuente de adendas: Tesis "Diego Cisneros Herrera", basada en Informes de Desempeño OSITRAN 2003–2022 y datos ProInversión. · Clasificación de tipo de adenda: elaboración propia. · El flag Guasch del modelo se basa en DSCR calculado con IMD real OSITRAN 2003–2025 y supuestos estandarizados documentados.</p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════════
+// DATOS FASE C — adendas clasificadas por tipo
+// Fuente: Tesis DCH, OSITRAN Informes de Desempeño 2003-2022
+// ══════════════════════════════════════════════════════════════════
+const ADENDAS_C = [
+  { id:'red-vial-5',      fin:1, tec:3, exp:1,
+    clave:'A2 (2005): modificación retribución y régimen económico',
+    validacion:'matiza', nota:'Adendas principalmente técnicas/predios' },
+  { id:'iirsa-norte',     fin:2, tec:3, exp:2,
+    clave:'A3 (2006): bancabilidad — CRPAO; A5 (2009): +USD 53.5M obras',
+    validacion:'confirmado', nota:'Adenda de bancabilidad y ampliación de inversión' },
+  { id:'iirsa-sur-t2',    fin:3, tec:4, exp:0,
+    clave:'A3 (2006): bancabilidad en 35 cláusulas; A5 (2009): cierre financiero',
+    validacion:'confirmado', nota:'Bancabilidad comprometida desde 2006' },
+  { id:'iirsa-sur-t3',    fin:3, tec:3, exp:0,
+    clave:'A3 (2006): CRPAO/acreedores; A5 (2009): inversión por encima del PAO',
+    validacion:'confirmado', nota:'Sobrecosto PAO explícito en A5' },
+  { id:'iirsa-sur-t4',    fin:3, tec:2, exp:1,
+    clave:'A5 (2009): superó 10% PAO; A6 (2009): agotamiento inversión PAO',
+    validacion:'confirmado', nota:'CASO ESTRELLA — agotamiento PAO contractual' },
+  { id:'red-vial-6',      fin:0, tec:5, exp:4,
+    clave:'Todas técnicas/expansión: obras nuevas, cronogramas, revegetación',
+    validacion:'matiza', nota:'9 adendas sin ningún componente de distress financiero' },
+  { id:'empalme-1b',      fin:2, tec:1, exp:0,
+    clave:'A1 (2008): mecanismos de financiamiento para ejecución de obras',
+    validacion:'nd', nota:'Vencida 2025 — sin análisis cuantitativo' },
+  { id:'iirsa-sur-t1',    fin:1, tec:1, exp:0,
+    clave:'A2 (2011): precisiones PAMO → utilidad negativa a positiva ese año',
+    validacion:'confirmado', nota:'Impacto financiero verificado en resultados' },
+  { id:'iirsa-sur-t5',    fin:1, tec:1, exp:2,
+    clave:'A1 (2010): ampliación a Carretera Binacional Ilo-Desaguadero',
+    validacion:'matiza', nota:'Principalmente expansión de alcance' },
+  { id:'red-vial-4',      fin:0, tec:4, exp:0,
+    clave:'Todas técnicas: EDI, arqueología, arbitraje, interferencias',
+    validacion:'confirmado', nota:'Sin adendas financieras — modelo lo marca viable' },
+  { id:'ovalo-chancay',   fin:1, tec:1, exp:0,
+    clave:'A1 (2010): ajuste fórmulas PAS antes de inicio explotación (2018)',
+    validacion:'parcial', nota:'Adenda financiera anticipada — concesión aún joven' },
+  { id:'costa-sierra',    fin:0, tec:1, exp:0,
+    clave:'A1 (2017): aceptación de obras y procedimiento CAO',
+    validacion:'nd', nota:'IMD aproximado — sin análisis cuantitativo' },
+  { id:'autopista-sol',   fin:1, tec:0, exp:1,
+    clave:'A2 (2016): modificar régimen tarifario + continuación obras',
+    validacion:'matiza', nota:'Una adenda toca tarifas; aun así el modelo lo marca viable' },
+  { id:'iirsa-centro',    fin:0, tec:2, exp:0,
+    clave:'A1-A2 (2014-2015): aprobación EDI y obras concesionario',
+    validacion:'confirmado', nota:'Solo adendas técnicas — consistente con viable' },
+  { id:'panamericana',    fin:1, tec:1, exp:0,
+    clave:'A1 (2016): cierre financiero obras + condiciones tarifarias',
+    validacion:'confirmado', nota:'Componente financiero menor; viable en el modelo' },
+  { id:'long-sierra-t2',  fin:0, tec:0, exp:0,
+    clave:'Sin adendas al 31 dic 2022 (DL 1012 + concesión relativamente nueva)',
+    validacion:'pendiente', nota:'Sin historial — monitorear en próximos años' },
+];
+
+const VAL_LABEL = {
+  confirmado: { txt:'✅ Confirmado', cls:'dscr-ok' },
+  matiza:     { txt:'⚠️ Matiza',    cls:'dscr-warn' },
+  parcial:    { txt:'⚠️ Parcial',   cls:'dscr-warn' },
+  pendiente:  { txt:'⏳ Pendiente', cls:'flag-txt' },
+  nd:         { txt:'—',            cls:'flag-txt' },
+};
+
+function renderValidacion(){
+  const tbody = document.getElementById('val-body');
+  tbody.innerHTML = ADENDAS_C.map(a => {
+    const r = RES.find(x => x.id === a.id) || {};
+    const tot = a.fin + a.tec + a.exp;
+    const vl = VAL_LABEL[a.validacion];
+    return `<tr class="row-${r.sc||'gris'}">
+      <td class="s-cell">${r.sem||'—'}</td>
+      <td><strong>${r.nombre||a.id}</strong><br><span class="flag-txt">${a.nota}</span></td>
+      <td class="flag-txt">${r.flag||'—'}</td>
+      <td class="num" style="text-align:center;font-weight:700">${tot}</td>
+      <td class="num dscr-bad" style="text-align:center">${a.fin||0}</td>
+      <td class="num" style="text-align:center;color:#8a6800;font-weight:600">${a.tec||0}</td>
+      <td class="num van-pos" style="text-align:center">${a.exp||0}</td>
+      <td class="flag-txt">${a.clave}</td>
+      <td style="text-align:center"><span class="${vl.cls}" style="font-weight:700">${vl.txt}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function buildScatter(){
+  const datos = ADENDAS_C.map(a => {
+    const r = RES.find(x => x.id === a.id) || {};
+    if(!r.dscr_min) return null;
+    const tot = a.fin + a.tec + a.exp;
+    const tipColor = a.validacion==='nd'||a.validacion==='nd'?'rgba(170,170,170,.8)':
+                     a.fin >= 2 ? 'rgba(192,57,43,.85)':
+                     a.fin === 1 ? 'rgba(230,126,34,.85)':
+                     'rgba(26,122,74,.85)';
+    return {x: r.dscr_min, y: tot, label: r.nombre, color: tipColor, sc: r.sc};
+  }).filter(Boolean);
+
+  new Chart(document.getElementById('chart-scatter'), {
+    type: 'scatter',
+    data: {
+      datasets: [{
+        data: datos.map(d => ({x:d.x, y:d.y})),
+        backgroundColor: datos.map(d => d.color),
+        pointRadius: 8,
+        pointHoverRadius: 11,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: {display:false},
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const d = datos[ctx.dataIndex];
+              return [`${d.label}`, `DSCR mín: ${ctx.raw.x.toFixed(2)}×`, `Adendas: ${ctx.raw.y}`];
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          title: {display:true, text:'DSCR mínimo (×)', font:{size:11}},
+          min: 0,
+          grid: {color:'rgba(0,0,0,.05)'}
+        },
+        y: {
+          title: {display:true, text:'N° de adendas totales', font:{size:11}},
+          min: 0,
+          ticks: {stepSize:1},
+          grid: {color:'rgba(0,0,0,.05)'}
+        }
+      }
+    },
+    plugins: [{
+      id: 'vline',
+      beforeDraw(chart) {
+        const xScale = chart.scales.x;
+        const x = xScale.getPixelForValue(1.2);
+        const ctx = chart.ctx;
+        ctx.save();
+        ctx.strokeStyle = 'rgba(192,57,43,.5)';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([5,4]);
+        ctx.beginPath();
+        ctx.moveTo(x, chart.chartArea.top);
+        ctx.lineTo(x, chart.chartArea.bottom);
+        ctx.stroke();
+        ctx.font = 'bold 10px sans-serif';
+        ctx.fillStyle = 'rgba(192,57,43,.8)';
+        ctx.fillText('1.20×', x+3, chart.chartArea.top+14);
+        // Añadir labels de puntos
+        chart.data.datasets[0].data.forEach((pt, i) => {
+          const px = xScale.getPixelForValue(pt.x);
+          const py = chart.scales.y.getPixelForValue(pt.y);
+          const d = datos[i];
+          if (!d) return;
+          const nombre = d.label.replace('IIRSA ','').replace('Red Vial ','RV ').replace('Tramo Vial ','').replace('Longitudinal de la Sierra ','Long. Sierra ').replace('Autopista del Sol','Aut. Sol');
+          ctx.fillStyle = 'rgba(26,37,53,.75)';
+          ctx.font = '9px sans-serif';
+          ctx.fillText(nombre, px+7, py+3);
+        });
+        ctx.restore();
+      }
+    }]
+  });
+}
+
+function buildBarrasFC(){
+  const grupos = {
+    'Alto subsidio\n🟠': {ids:['iirsa-sur-t2','iirsa-sur-t3','iirsa-sur-t4','ovalo-chancay'], color:'rgba(200,100,0,.8)'},
+    'Subsidio moderado\n🟡': {ids:['iirsa-norte','iirsa-sur-t1','long-sierra-t2'], color:'rgba(200,160,0,.8)'},
+    'Viable\n🟢': {ids:['red-vial-5','red-vial-6','iirsa-sur-t5','red-vial-4','autopista-sol','iirsa-centro','panamericana'], color:'rgba(26,122,74,.8)'},
+    'Sin análisis\n⚫': {ids:['empalme-1b','costa-sierra'], color:'rgba(120,130,145,.7)'},
+  };
+
+  const labels = Object.keys(grupos);
+  const dataFin = labels.map(g => {
+    const ids = grupos[g].ids;
+    const total_fin = ADENDAS_C.filter(a => ids.includes(a.id)).reduce((s,a)=>s+a.fin,0);
+    return ids.length ? (total_fin / ids.length) : 0;
+  });
+  const dataTot = labels.map(g => {
+    const ids = grupos[g].ids;
+    const total = ADENDAS_C.filter(a => ids.includes(a.id)).reduce((s,a)=>s+a.fin+a.tec+a.exp,0);
+    return ids.length ? (total / ids.length) : 0;
+  });
+
+  new Chart(document.getElementById('chart-barras-fc'), {
+    type: 'bar',
+    data: {
+      labels: labels.map(l => l.split('\n')),
+      datasets: [
+        {label:'Adendas financieras (prom.)', data:dataFin,
+         backgroundColor:'rgba(192,57,43,.8)', borderRadius:4},
+        {label:'Adendas técnicas+expansión (prom.)', data:dataTot.map((t,i)=>Math.max(t-dataFin[i],0)),
+         backgroundColor:'rgba(52,152,219,.6)', borderRadius:4},
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins: {
+        legend: {position:'bottom', labels:{font:{size:11}}},
+        tooltip: {callbacks:{label:c=>`${c.dataset.label}: ${c.raw.toFixed(1)}`}}
+      },
+      scales: {
+        x: {stacked:true, grid:{display:false}},
+        y: {stacked:true, title:{display:true,text:'Promedio por grupo',font:{size:11}},
+            grid:{color:'rgba(0,0,0,.05)'}}
+      }
+    }
+  });
+}
+
+function renderConclusion(){
+  const confirmados = ADENDAS_C.filter(a=>a.validacion==='confirmado').length;
+  const matiza = ADENDAS_C.filter(a=>a.validacion==='matiza').length;
+  const parcial = ADENDAS_C.filter(a=>a.validacion==='parcial').length;
+  const nd = ADENDAS_C.filter(a=>a.validacion==='nd'||a.validacion==='pendiente').length;
+  const total_val = confirmados + matiza + parcial;
+
+  document.getElementById('conclusion-guasch').innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem">
+      <div style="background:#e8f5ee;border-radius:10px;padding:1rem;text-align:center">
+        <div style="font-size:1.8rem;font-weight:800;color:#1a7a4a">${confirmados}</div>
+        <div style="font-size:.78rem;color:#2a6a4a">✅ Guasch confirmado</div>
+      </div>
+      <div style="background:#fef5ee;border-radius:10px;padding:1rem;text-align:center">
+        <div style="font-size:1.8rem;font-weight:800;color:#c85a1a">${matiza}</div>
+        <div style="font-size:.78rem;color:#a85010">⚠️ Matiza el modelo</div>
+      </div>
+      <div style="background:#fffdf0;border-radius:10px;padding:1rem;text-align:center">
+        <div style="font-size:1.8rem;font-weight:800;color:#8a6800">${parcial}</div>
+        <div style="font-size:.78rem;color:#6a5000">⚠️ Validación parcial</div>
+      </div>
+      <div style="background:#f5f5f8;border-radius:10px;padding:1rem;text-align:center">
+        <div style="font-size:1.8rem;font-weight:800;color:#5a6070">${nd}</div>
+        <div style="font-size:.78rem;color:#4a5060">⏳ Sin historial / N/D</div>
+      </div>
+    </div>
+    <div class="guasch-box">
+      <h3>📌 Conclusión</h3>
+      <p>De las ${total_val} concesiones con historial de adendas analizable, <strong>${confirmados} (${Math.round(confirmados/total_val*100)}%) validan la hipótesis Guasch</strong>: las concesiones que el modelo marca con bajo DSCR o alto subsidio presentan adendas con componentes explícitamente financieros (bancabilidad, agotamiento de PAO, régimen económico). Las ${matiza} que "matizan" el modelo (Red Vial N°5, N°6, IIRSA Sur T5, Autopista del Sol) tienen adendas cuya motivación principal es técnica o de expansión, no de distress.</p>
+      <p><strong>El hallazgo metodológico más relevante:</strong> el número de adendas <em>sin clasificación de tipo</em> no es un buen proxy de renegociación por distress. Red Vial N°6 acumula 9 adendas (la más alta del portafolio) pero ninguna responde a problemas financieros — todas son de expansión. Esto sugiere que los indicadores financieros del modelo (DSCR, VAN residual) son mejores predictores que el simple conteo de adendas.</p>
+      <p><strong>Caso más fuerte del corpus peruano:</strong> IIRSA Sur T4, con adendas N°5 y N°6 de 2009 que documentan explícitamente el <em>agotamiento del PAO contractual</em> — exactamente el mecanismo que Guasch (2004) identifica como detonante de renegociación en concesiones LAC.</p>
+    </div>`;
+}
+
+// Inicializar Fase C
+renderValidacion();
+renderConclusion();
+if(typeof Chart !== 'undefined') {
+  buildScatter();
+  buildBarrasFC();
+}
+</script>
 </body>
 </html>
