@@ -5,44 +5,47 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashboard — Concesiones Viales Perú</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&family=Source+Sans+3:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
 <style>
   :root {
-    --navy: #0d2c54;
-    --navy-light: #1a4070;
-    --gold: #c8962e;
-    --bg: #f4f6f9;
+    --ink: #0f2e46;
+    --ink-2: #1d4666;
+    --azure: #1c6fb0;
+    --azure-deep: #0d4d80;
+    --bg: #f5f3ee;
     --white: #ffffff;
-    --text: #1a2535;
-    --muted: #6b7a8d;
-    --border: #dde3ec;
-    --auto-color: #1a7a4a;
-    --auto-bg: #e8f5ee;
-    --cofin-color: #c85a1a;
-    --cofin-bg: #fdf0e8;
-    --shadow: 0 2px 12px rgba(13,44,84,0.10);
+    --text: #23303a;
+    --muted: #5c6b76;
+    --border: #dfe0d8;
+    --auto-color: #1c7a54;
+    --auto-bg: #e7f3ec;
+    --cofin-color: #b5580f;
+    --cofin-bg: #f7ece0;
+    --shadow: 0 2px 12px rgba(15,46,70,0.10);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); }
+  body { font-family: 'Source Sans 3', system-ui, sans-serif; background: var(--bg); color: var(--text); }
+  h1, h2, h3 { font-family: 'Public Sans', sans-serif; }
 
   nav {
-    background: var(--navy);
-    padding: 0 2rem;
+    background: var(--ink);
+    padding: 0 clamp(16px,4vw,40px);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 64px;
+    height: 60px;
     position: sticky; top: 0; z-index: 100;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
   }
-  .nav-brand { color: var(--white); font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 0.6rem; }
-  .nav-brand span { color: var(--gold); }
+  .nav-brand { color: var(--white); font-family: 'Public Sans', sans-serif; font-size: .95rem; font-weight: 700; letter-spacing: .01em; display: flex; align-items: center; gap: 0.6rem; }
+  .nav-brand span { color: var(--azure); }
   .nav-links { display: flex; gap: 1.5rem; align-items: center; }
-  .nav-links a { color: rgba(255,255,255,0.75); text-decoration: none; font-size: 0.88rem; font-weight: 500; transition: color 0.2s; }
-  .nav-links a:hover { color: var(--gold); }
-  .btn-back { color: var(--gold) !important; border: 1px solid rgba(200,150,46,0.4); border-radius: 6px; padding: 0.3rem 0.8rem !important; }
+  .nav-links a { color: rgba(255,255,255,0.65); text-decoration: none; font-size: 0.82rem; font-weight: 500; letter-spacing: .02em; transition: color 0.2s; }
+  .nav-links a:hover { color: #fff; }
+  .btn-back { color: var(--azure) !important; border: 1px solid rgba(28,111,176,0.4); border-radius: 6px; padding: 0.3rem 0.8rem !important; }
+  .btn-back:hover { color: #fff !important; border-color: var(--azure); }
 
   .hero-conc {
-    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+    background: linear-gradient(135deg, var(--ink) 0%, var(--ink-2) 100%);
     padding: 2.5rem 2rem 3rem;
     color: var(--white);
     position: relative;
@@ -58,9 +61,9 @@
     display: inline-block; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em;
     text-transform: uppercase; padding: 0.3rem 0.9rem; border-radius: 20px; margin-bottom: 0.8rem;
   }
-  .badge-auto { background: rgba(26,122,74,0.2); color: #5dd98c; border: 1px solid rgba(26,122,74,0.4); }
-  .badge-cofin { background: rgba(200,90,26,0.2); color: #f5a070; border: 1px solid rgba(200,90,26,0.4); }
-  .hero-inner h1 { font-size: 2rem; font-weight: 800; margin-bottom: 0.3rem; }
+  .badge-auto { background: rgba(28,122,84,0.22); color: #6fd9a8; border: 1px solid rgba(28,122,84,0.4); }
+  .badge-cofin { background: rgba(181,88,15,0.22); color: #f5a862; border: 1px solid rgba(181,88,15,0.4); }
+  .hero-inner h1 { font-family: 'Public Sans', sans-serif; font-size: 2rem; font-weight: 800; margin-bottom: 0.3rem; }
   .hero-inner .sub { color: rgba(255,255,255,0.65); font-size: 0.95rem; margin-bottom: 1.8rem; }
 
   .kpi-row { display: flex; gap: 1rem; flex-wrap: wrap; }
@@ -72,7 +75,7 @@
     min-width: 130px;
     text-align: center;
   }
-  .kpi-item .val { font-size: 1.6rem; font-weight: 800; color: var(--gold); line-height: 1; }
+  .kpi-item .val { font-family: 'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums; font-size: 1.5rem; font-weight: 600; color: #6fb4e6; line-height: 1; }
   .kpi-item .lbl { font-size: 0.72rem; color: rgba(255,255,255,0.65); margin-top: 0.3rem; }
 
   .main { max-width: 1200px; margin: 0 auto; padding: 2rem 2rem 4rem; }
@@ -94,7 +97,7 @@
     color: var(--muted);
     margin-bottom: 1rem;
     padding-bottom: 0.6rem;
-    border-bottom: 2px solid var(--gold);
+    border-bottom: 2px solid var(--azure);
     display: inline-block;
   }
 
@@ -111,13 +114,13 @@
 
   /* Adendas */
   .adendas-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
-  .adendas-table th { background: var(--navy); color: var(--white); padding: 0.6rem 0.8rem; text-align: left; font-weight: 600; font-size: 0.75rem; letter-spacing: 0.04em; }
+  .adendas-table th { background: var(--ink); color: var(--white); padding: 0.6rem 0.8rem; text-align: left; font-weight: 600; font-size: 0.75rem; letter-spacing: 0.04em; }
   .adendas-table th:first-child { border-radius: 8px 0 0 0; }
   .adendas-table th:last-child { border-radius: 0 8px 0 0; }
   .adendas-table td { padding: 0.7rem 0.8rem; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.5; }
   .adendas-table tr:last-child td { border-bottom: none; }
   .adendas-table tr:hover td { background: #f8fafc; }
-  .adendas-table td:first-child { font-weight: 700; color: var(--navy); white-space: nowrap; }
+  .adendas-table td:first-child { font-weight: 700; color: var(--ink); white-space: nowrap; }
   .adendas-table td:nth-child(2) { white-space: nowrap; color: var(--muted); }
 
   .no-adendas { text-align: center; padding: 2rem; color: var(--muted); font-size: 0.9rem; }
@@ -139,20 +142,20 @@
     transition: border-color 0.2s, box-shadow 0.2s;
     max-width: 48%;
   }
-  .nav-conc a:hover { border-color: var(--navy); box-shadow: var(--shadow); }
-  .nav-conc a .dir { font-size: 1rem; color: var(--gold); }
-  .nav-conc a .name { font-weight: 600; font-size: 0.8rem; color: var(--navy); }
+  .nav-conc a:hover { border-color: var(--ink); box-shadow: var(--shadow); }
+  .nav-conc a .dir { font-size: 1rem; color: var(--azure); }
+  .nav-conc a .name { font-weight: 600; font-size: 0.8rem; color: var(--ink); }
   .nav-conc a .tipo-badge { font-size: 0.68rem; }
 
   footer {
-    background: var(--navy);
+    background: var(--ink);
     color: rgba(255,255,255,0.6);
     text-align: center;
     padding: 1.5rem 2rem;
     font-size: 0.8rem;
     line-height: 1.8;
   }
-  footer strong { color: var(--gold); }
+  footer strong { color: var(--azure); }
 
   @media (max-width: 900px) {
     .layout { grid-template-columns: 1fr; }
@@ -169,10 +172,12 @@
 <body>
 
 <nav>
-  <div class="nav-brand">🛣 Concesiones <span>Viales Perú</span></div>
+  <div class="nav-brand">Concesiones <span>Viales Perú</span></div>
   <div class="nav-links">
     <a href="index.html" class="btn-back">← Portal</a>
     <a href="comparador.html">Comparador</a>
+    <a href="trafico.html">Tráfico y Pronósticos</a>
+    <a href="analisis-financiero.html">Análisis Financiero</a>
   </div>
 </nav>
 
@@ -328,7 +333,7 @@ if (!c) {
   `;
 
   // ── CHART INVERSIÓN ──
-  const invColors = { border: '#c8962e', bg: 'rgba(200,150,46,0.12)', line2: '#0d2c54' };
+  const invColors = { border: '#1c6fb0', bg: 'rgba(28,111,176,0.12)', line2: '#0f2e46' };
   const invMillones = c.inv.pct.map(p => Math.round(p / 100 * invTotal * 10) / 10);
 
   new Chart(document.getElementById('chart-inv'), {
@@ -339,8 +344,8 @@ if (!c) {
           type: 'bar',
           label: 'Inversión acum. (M USD)',
           data: invMillones,
-          backgroundColor: 'rgba(13,44,84,0.15)',
-          borderColor: 'rgba(13,44,84,0.4)',
+          backgroundColor: 'rgba(15,46,70,0.15)',
+          borderColor: 'rgba(15,46,70,0.4)',
           borderWidth: 1,
           borderRadius: 3,
           yAxisID: 'y2',
@@ -350,11 +355,11 @@ if (!c) {
           type: 'line',
           label: '% avance inversión',
           data: c.inv.pct,
-          borderColor: '#c8962e',
-          backgroundColor: 'rgba(200,150,46,0.08)',
+          borderColor: '#1c6fb0',
+          backgroundColor: 'rgba(28,111,176,0.08)',
           borderWidth: 2.5,
           pointRadius: 3,
-          pointBackgroundColor: '#c8962e',
+          pointBackgroundColor: '#1c6fb0',
           tension: 0.35,
           fill: true,
           yAxisID: 'y1',
@@ -399,11 +404,11 @@ if (!c) {
       datasets: [{
         label: 'IMD (veh/día)',
         data: c.imd.vals,
-        borderColor: esAuto ? '#1a7a4a' : '#c85a1a',
-        backgroundColor: esAuto ? 'rgba(26,122,74,0.1)' : 'rgba(200,90,26,0.1)',
+        borderColor: esAuto ? '#1c7a54' : '#b5580f',
+        backgroundColor: esAuto ? 'rgba(28,122,84,0.1)' : 'rgba(181,88,15,0.1)',
         borderWidth: 2.5,
         pointRadius: 4,
-        pointBackgroundColor: esAuto ? '#1a7a4a' : '#c85a1a',
+        pointBackgroundColor: esAuto ? '#1c7a54' : '#b5580f',
         tension: 0.35,
         fill: true
       }]

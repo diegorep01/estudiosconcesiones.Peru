@@ -5,45 +5,53 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Comparador — Concesiones Viales Perú</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&family=Source+Sans+3:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
 <style>
   :root {
-    --navy: #0d2c54;
-    --navy-light: #1a4070;
-    --gold: #c8962e;
-    --bg: #f4f6f9;
+    --ink: #0f2e46;
+    --ink-2: #1d4666;
+    --azure: #1c6fb0;
+    --azure-deep: #0d4d80;
+    --paper: #f5f3ee;
     --white: #ffffff;
-    --text: #1a2535;
-    --muted: #6b7a8d;
-    --border: #dde3ec;
-    --shadow: 0 2px 12px rgba(13,44,84,0.10);
+    --text: #23303a;
+    --muted: #5c6b76;
+    --border: #dfe0d8;
+    --auto: #1c7a54;
+    --auto-bg: #e7f3ec;
+    --cofin: #b5580f;
+    --cofin-bg: #f7ece0;
+    --shadow: 0 2px 12px rgba(15,46,70,0.10);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); }
+  body { font-family: 'Source Sans 3', system-ui, sans-serif; background: var(--paper); color: var(--text); }
+  h1, h2, h3, .nav-brand { font-family: 'Public Sans', sans-serif; }
+  .sel-info, .rank-val, .comp-table td, .comp-table th, .sel-count { font-variant-numeric: tabular-nums; }
 
   nav {
-    background: var(--navy); padding: 0 2rem;
+    background: var(--ink); padding: 0 clamp(16px,4vw,40px);
     display: flex; align-items: center; justify-content: space-between;
-    height: 64px; position: sticky; top: 0; z-index: 100;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    height: 60px; position: sticky; top: 0; z-index: 100;
   }
-  .nav-brand { color: var(--white); font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 0.6rem; }
-  .nav-brand span { color: var(--gold); }
+  .nav-brand { color: var(--white); font-size: .95rem; font-weight: 700; letter-spacing: .01em; display: flex; align-items: center; gap: 0.6rem; }
+  .nav-brand span { color: var(--azure); }
   .nav-links { display: flex; gap: 1.5rem; align-items: center; }
-  .nav-links a { color: rgba(255,255,255,0.75); text-decoration: none; font-size: 0.88rem; font-weight: 500; transition: color 0.2s; }
-  .nav-links a:hover, .nav-links a.active { color: var(--gold); }
-  .btn-back { color: var(--gold) !important; border: 1px solid rgba(200,150,46,0.4); border-radius: 6px; padding: 0.3rem 0.8rem !important; }
+  .nav-links a { color: rgba(255,255,255,0.65); text-decoration: none; font-size: 0.82rem; font-weight: 500; letter-spacing: .02em; padding: 20px 0; border-bottom: 2px solid transparent; transition: color .16s ease-out, border-color .16s ease-out; }
+  .nav-links a:hover, .nav-links a.active { color: var(--white); border-color: var(--azure); }
+  .btn-back { color: var(--azure) !important; border: none !important; padding: 0 !important; border-bottom: 2px solid transparent !important; }
+  .btn-back:hover { border-color: var(--azure) !important; }
 
   .hero {
-    background: linear-gradient(135deg, var(--navy) 0%, #1e4d82 100%);
-    padding: 2.5rem 2rem;
+    background: var(--ink);
+    padding: 2.5rem clamp(16px,4vw,40px);
     color: var(--white);
     text-align: center;
   }
   .hero h1 { font-size: 1.8rem; font-weight: 800; margin-bottom: 0.4rem; }
-  .hero h1 span { color: var(--gold); }
+  .hero h1 span { color: var(--azure); }
   .hero p { color: rgba(255,255,255,0.7); font-size: 0.92rem; }
 
-  .main { max-width: 1280px; margin: 0 auto; padding: 2rem 2rem 4rem; }
+  .main { max-width: 1280px; margin: 0 auto; padding: 2rem clamp(16px,4vw,40px) 4rem; }
 
   .selector-section {
     background: var(--white);
@@ -71,49 +79,51 @@
     border-radius: 8px;
     border: 1.5px solid var(--border);
     cursor: pointer;
-    transition: all 0.15s;
+    transition: border-color .16s ease-out, background .16s ease-out;
     user-select: none;
   }
-  .sel-item:hover { border-color: var(--navy); background: #f0f4f9; }
-  .sel-item.selected { border-color: var(--gold); background: #fff8eb; }
-  .sel-check { width: 18px; height: 18px; border-radius: 4px; border: 2px solid var(--border); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; color: var(--white); transition: all 0.15s; }
-  .sel-item.selected .sel-check { background: var(--gold); border-color: var(--gold); }
+  .sel-item:active { transform: scale(.99); }
+  .sel-item:hover { border-color: var(--azure); background: #f0f5fa; }
+  .sel-item.selected { border-color: var(--azure); background: #eaf3fb; }
+  .sel-check { width: 18px; height: 18px; border-radius: 4px; border: 2px solid var(--border); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; color: var(--white); transition: background .16s ease-out, border-color .16s ease-out; }
+  .sel-item.selected .sel-check { background: var(--azure); border-color: var(--azure); }
   .sel-nombre { font-size: 0.82rem; font-weight: 600; }
   .sel-info { font-size: 0.7rem; color: var(--muted); }
-  .sel-badge { font-size: 0.65rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 10px; }
-  .badge-auto { background: #e8f5ee; color: #1a7a4a; }
-  .badge-cofin { background: #fdf0e8; color: #c85a1a; }
+  .sel-badge { font-size: 0.65rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 3px; font-family: 'IBM Plex Mono', monospace; text-transform: uppercase; letter-spacing: .03em; }
+  .badge-auto { background: var(--auto-bg); color: var(--auto); }
+  .badge-cofin { background: var(--cofin-bg); color: var(--cofin); }
 
   .sel-actions { margin-top: 1rem; display: flex; gap: 0.8rem; align-items: center; }
-  .btn-sel-all { background: none; border: 1px solid var(--border); border-radius: 6px; padding: 0.4rem 0.9rem; font-size: 0.8rem; cursor: pointer; color: var(--muted); }
-  .btn-sel-all:hover { border-color: var(--navy); color: var(--navy); }
-  .btn-compare { background: var(--navy); color: var(--white); border: none; border-radius: 8px; padding: 0.5rem 1.4rem; font-size: 0.88rem; font-weight: 600; cursor: pointer; transition: background 0.2s; }
-  .btn-compare:hover { background: var(--navy-light); }
-  .sel-count { color: var(--muted); font-size: 0.82rem; }
+  .btn-sel-all { background: var(--white); border: 1.5px solid var(--border); border-radius: 8px; padding: 0.4rem 0.9rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; color: var(--ink); transition: border-color .16s ease-out, transform .16s ease-out; font-family: inherit; }
+  .btn-sel-all:active, .btn-compare:active { transform: scale(.97); }
+  .btn-sel-all:hover { border-color: var(--azure); }
+  .btn-compare { background: var(--azure); color: var(--white); border: 1.5px solid transparent; border-radius: 8px; padding: 0.5rem 1.4rem; font-size: 0.88rem; font-weight: 600; cursor: pointer; transition: background .16s ease-out, transform .16s ease-out; font-family: inherit; }
+  .btn-compare:hover { background: var(--azure-deep); }
+  .sel-count { color: var(--muted); font-size: 0.82rem; font-family: 'IBM Plex Mono', monospace; }
 
   .card { background: var(--white); border-radius: 14px; border: 1px solid var(--border); padding: 1.5rem; box-shadow: var(--shadow); margin-bottom: 1.5rem; }
-  .card h3 { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 1.2rem; padding-bottom: 0.6rem; border-bottom: 2px solid var(--gold); display: inline-block; }
+  .card h3 { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 1.2rem; padding-bottom: 0.6rem; border-bottom: 2px solid var(--azure); display: inline-block; }
 
   /* Rankings */
   .rankings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
-  .rank-block { background: var(--bg); border-radius: 10px; padding: 1rem; }
+  .rank-block { background: var(--paper); border-radius: 10px; padding: 1rem; }
   .rank-block h4 { font-size: 0.72rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.6rem; }
   .rank-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.3rem 0; font-size: 0.8rem; }
-  .rank-pos { font-weight: 800; color: var(--gold); width: 20px; flex-shrink: 0; }
+  .rank-pos { font-weight: 800; color: var(--azure); width: 20px; flex-shrink: 0; font-family: 'IBM Plex Mono', monospace; }
   .rank-name { font-weight: 600; flex: 1; }
   .rank-val { color: var(--muted); white-space: nowrap; }
   .rank-bar-wrap { height: 4px; background: var(--border); border-radius: 2px; margin-top: 2px; }
-  .rank-bar { height: 100%; border-radius: 2px; background: var(--gold); }
+  .rank-bar { height: 100%; border-radius: 2px; background: var(--azure); }
 
   /* Tabla comparativa */
   .comp-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; overflow-x: auto; display: block; }
-  .comp-table th { background: var(--navy); color: var(--white); padding: 0.65rem 0.9rem; text-align: left; font-size: 0.75rem; font-weight: 600; white-space: nowrap; }
+  .comp-table th { background: var(--ink); color: var(--white); padding: 0.65rem 0.9rem; text-align: left; font-size: 0.75rem; font-weight: 600; white-space: nowrap; }
   .comp-table th:first-child { border-radius: 8px 0 0 0; }
   .comp-table .var-col { width: 180px; font-size: 0.72rem; color: var(--muted); font-weight: 600; white-space: nowrap; }
   .comp-table td { padding: 0.65rem 0.9rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
   .comp-table tr:last-child td { border-bottom: none; }
-  .comp-table .best { color: #1a7a4a; font-weight: 700; background: #f0faf5; }
-  .comp-table .worst { color: #c85a1a; font-weight: 700; background: #fef6f0; }
+  .comp-table .best { color: var(--auto); font-weight: 700; background: var(--auto-bg); }
+  .comp-table .worst { color: var(--cofin); font-weight: 700; background: var(--cofin-bg); }
 
   /* Gráficos comparativos */
   .chart-comp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
@@ -123,8 +133,8 @@
   .empty-state span { font-size: 3rem; display: block; margin-bottom: 0.8rem; }
   .empty-state p { font-size: 0.95rem; }
 
-  footer { background: var(--navy); color: rgba(255,255,255,0.6); text-align: center; padding: 1.5rem 2rem; font-size: 0.8rem; line-height: 1.8; }
-  footer strong { color: var(--gold); }
+  footer { background: var(--ink); color: rgba(255,255,255,0.55); text-align: center; padding: 1.5rem clamp(16px,4vw,40px); font-size: 0.78rem; line-height: 1.8; }
+  footer strong { color: var(--azure); }
 
   @media (max-width: 600px) {
     .chart-comp-grid { grid-template-columns: 1fr; }
@@ -136,10 +146,12 @@
 <body>
 
 <nav>
-  <div class="nav-brand">🛣 Concesiones <span>Viales Perú</span></div>
+  <div class="nav-brand">Concesiones <span>Viales Perú</span></div>
   <div class="nav-links">
     <a href="index.html" class="btn-back">← Portal</a>
     <a href="comparador.html" class="active">Comparador</a>
+    <a href="trafico.html">Tráfico y Pronósticos</a>
+    <a href="analisis-financiero.html">Análisis Financiero</a>
   </div>
 </nav>
 
@@ -181,7 +193,7 @@
 <script src="js/data.js"></script>
 <script>
 const PALETTE = [
-  '#c8962e','#0d2c54','#1a7a4a','#c85a1a','#5b48c8','#c82860',
+  '#1c6fb0','#0f2e46','#1a7a4a','#c85a1a','#5b48c8','#c82860',
   '#28a8c8','#78a830','#a05090','#c8c030','#4870c8','#c86820'
 ];
 
@@ -331,7 +343,7 @@ function renderComparison() {
 
   results.innerHTML = `
     <div class="card">
-      <h3>Tabla comparativa · <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--navy);">${lista.length} concesiones</span></h3>
+      <h3>Tabla comparativa · <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--ink);">${lista.length} concesiones</span></h3>
       <p style="font-size:0.72rem;color:var(--muted);margin-bottom:0.8rem;">🟢 mejor valor · 🟠 peor valor (en variables numéricas). En adendas: menos = mejor.</p>
       <div style="overflow-x:auto;">
         <table class="comp-table">
