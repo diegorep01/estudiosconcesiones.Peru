@@ -151,6 +151,14 @@ select:focus{outline:none;border-color:var(--azure);box-shadow:0 0 0 3px rgba(28
       <button class="tbtn" id="btnVistaMensual" onclick="setVista('mensual')">Mensual</button>
     </div>
   </div>
+  <div class="cg" id="cgUnidad" style="display:none">
+    <span class="clbl">Unidad</span>
+    <div class="tbtns" id="unidadBtns">
+      <button class="tbtn active" id="btnUnidVeh" onclick="setUnidad('vehiculos')">Vehículos</button>
+      <button class="tbtn" id="btnUnidEjes" onclick="setUnidad('ejes')">Ejes</button>
+      <button class="tbtn" id="btnUnidIng" onclick="setUnidad('ingresos')">Ingresos</button>
+    </div>
+  </div>
   <div class="cg">
     <span class="clbl">Concesión</span>
     <select id="selConc" onchange="onConcChange()"></select>
@@ -268,9 +276,22 @@ const selEst = document.getElementById("selEst");
 const tipoBtns = document.getElementById("tipoBtns");
 let curTipo = null;
 let vistaActual = "anual"; // "anual" | "mensual"
+let unidadActual = "vehiculos"; // "vehiculos" | "ejes" | "ingresos" (solo aplica en vista mensual)
+
+const UNIDAD_INFO = {
+  vehiculos: { corto: "veh.", largo: "Vehículos", esMoneda: false },
+  ejes:      { corto: "ejes", largo: "Ejes cobrables", esMoneda: false },
+  ingresos:  { corto: "S/",   largo: "Ingresos por peaje", esMoneda: true },
+};
 
 function datosActuales() {
-  return vistaActual === "mensual" ? (typeof DATOS_MENSUAL !== "undefined" ? DATOS_MENSUAL : {}) : DATOS;
+  // Nota: DATOS_MENSUAL* se declaran con "const" en datos_mensual.js (script aparte);
+  // un const de nivel superior NO cuelga de window, así que se referencian por nombre
+  // directo (visible entre <script> del mismo documento) y no via window[...].
+  if (vistaActual !== "mensual") return DATOS;
+  if (unidadActual === "ejes") return (typeof DATOS_MENSUAL_EJES !== "undefined") ? DATOS_MENSUAL_EJES : {};
+  if (unidadActual === "ingresos") return (typeof DATOS_MENSUAL_INGRESOS !== "undefined") ? DATOS_MENSUAL_INGRESOS : {};
+  return (typeof DATOS_MENSUAL !== "undefined") ? DATOS_MENSUAL : {};
 }
 
 function poblarConcesiones() {
@@ -285,16 +306,36 @@ function poblarConcesiones() {
   if (previa && datosActuales()[previa]) selConc.value = previa;
 }
 
+function actualizarBadge() {
+  const nConc = Object.keys(datosActuales()).length;
+  let nSeries = 0;
+  Object.values(datosActuales()).forEach(c => Object.values(c.series || {}).forEach(e => nSeries += (e._tipos || []).length));
+  document.getElementById("hbadge").textContent =
+    vistaActual === "mensual"
+      ? `${nConc} concesiones · ${nSeries} series (${UNIDAD_INFO[unidadActual].largo.toLowerCase()})`
+      : "16 concesiones · 189 series";
+}
+
 function setVista(v) {
   if (v === vistaActual) return;
   vistaActual = v;
   document.getElementById("btnVistaAnual").classList.toggle("active", v === "anual");
   document.getElementById("btnVistaMensual").classList.toggle("active", v === "mensual");
-  const nConc = Object.keys(datosActuales()).length;
-  let nSeries = 0;
-  Object.values(datosActuales()).forEach(c => Object.values(c.series || {}).forEach(e => nSeries += (e._tipos || []).length));
-  document.getElementById("hbadge").textContent =
-    v === "mensual" ? `${nConc} concesiones · ${nSeries} series mensuales` : "16 concesiones · 189 series";
+  document.getElementById("cgUnidad").style.display = v === "mensual" ? "" : "none";
+  if (v === "anual") setUnidad("vehiculos", true); // reset silencioso al volver a anual
+  actualizarBadge();
+  poblarConcesiones();
+  onConcChange();
+}
+
+function setUnidad(u, silencioso) {
+  if (u === unidadActual && !silencioso) return;
+  unidadActual = u;
+  document.getElementById("btnUnidVeh").classList.toggle("active", u === "vehiculos");
+  document.getElementById("btnUnidEjes").classList.toggle("active", u === "ejes");
+  document.getElementById("btnUnidIng").classList.toggle("active", u === "ingresos");
+  if (silencioso) return;
+  actualizarBadge();
   poblarConcesiones();
   onConcChange();
 }
@@ -347,12 +388,13 @@ function updateViz() {
   const s = datosActuales()[conc]?.series[est]?.[tipo];
   if (!s) return;
   const esMensual = vistaActual === "mensual";
+  const uInfo = esMensual ? UNIDAD_INFO[unidadActual] : UNIDAD_INFO.vehiculos;
 
   document.getElementById("chartTitle").textContent = conc + " — " + est + " (" + tipo + ")";
   const ini = s.hist_x.length ? s.hist_x[0] : "";
   const finLbl = esMensual ? (s.pred_x.length ? s.pred_x[s.pred_x.length - 1].slice(0, 7) : "") : "2035";
   document.getElementById("chartSubtitle").textContent =
-    (esMensual ? "Vehículos/mes · " : "Vehículos/año · ") +
+    (esMensual ? uInfo.largo + "/mes · " : "Vehículos/año · ") +
     (esMensual ? ini.slice(0, 7) : ini) + "–" + finLbl + " · " + (s.modelo?.alg || "");
 
   document.getElementById("legCiTxt").textContent =
@@ -370,7 +412,9 @@ function updateViz() {
     srcBadge.style.display = "none";
   }
 
-  const unidadTxt = esMensual ? "veh." : "veh.";
+  const hoverPref = uInfo.esMoneda ? "S/ " : "";
+  const hoverSuf = uInfo.esMoneda ? "" : (" " + uInfo.corto);
+  const hoverFmt = "%{x}: <b>" + hoverPref + "%{y:,.0f}</b>" + hoverSuf;
   const traces = [
     { x: s.pred_x, y: s.ic_sup, name: "IC aprox.", mode: "lines",
       line: { color: "transparent", width: 0 }, showlegend: false, hoverinfo: "skip" },
@@ -380,11 +424,11 @@ function updateViz() {
     { x: s.hist_x, y: s.hist_y, name: "Histórico", mode: esMensual ? "lines" : "lines+markers",
       line: { color: "#0d4d80", width: esMensual ? 1.6 : 2.5 },
       marker: { size: 6, color: "#0d4d80", symbol: "circle" },
-      hovertemplate: "%{x}: <b>%{y:,.0f}</b> " + unidadTxt + "<extra></extra>" },
+      hovertemplate: hoverFmt + "<extra></extra>" },
     { x: s.pred_x, y: s.pred_y, name: "Proyección ML", mode: esMensual ? "lines" : "lines+markers",
       line: { color: "#1c6fb0", width: esMensual ? 1.6 : 2.5, dash: "dash" },
       marker: { size: 5, color: "#1c6fb0", symbol: "diamond" },
-      hovertemplate: "%{x}: <b>%{y:,.0f}</b> " + unidadTxt + " (proj.)<extra></extra>" },
+      hovertemplate: hoverFmt + " (proj.)<extra></extra>" },
   ];
 
   const allY = [...s.hist_y, ...s.pred_y, ...s.ic_sup].filter(v => v > 0);
@@ -413,7 +457,8 @@ function updateViz() {
     font: { family: "'Source Sans 3', system-ui, sans-serif" },
     margin: { t: 14, r: 20, b: 48, l: 72 },
     xaxis,
-    yaxis: { title: esMensual ? "Vehículos / mes" : "Vehículos / año", titlefont: { size: 12, color: "#5c6b76" },
+    yaxis: { title: esMensual ? (uInfo.esMoneda ? "Soles (S/) / mes" : uInfo.largo + " / mes") : "Vehículos / año",
+             titlefont: { size: 12, color: "#5c6b76" },
              showgrid: true, gridcolor: "#dfe0d8", tickfont: { size: 12, color: "#5c6b76", family: "'IBM Plex Mono', monospace" },
              zeroline: false, rangemode: "tozero", range: [0, yMax], tickformat: ",.0f" },
     shapes, annotations,
@@ -433,6 +478,9 @@ function updateSidebar(s) {
   const alg = m.alg || "";
   const aI = ALG[alg] || {};
   const esMensual = vistaActual === "mensual";
+  const uInfo = esMensual ? UNIDAD_INFO[unidadActual] : UNIDAD_INFO.vehiculos;
+  const fmtU = (n) => uInfo.esMoneda ? ("S/ " + fmt(n)) : fmt(n);
+  const uLbl = uInfo.esMoneda ? "soles" : uInfo.largo.toLowerCase();
 
   const filaRmse = (!esMensual && m.rmse !== undefined)
     ? `<div class="ir"><span class="ik">RMSE holdout</span>
@@ -495,9 +543,9 @@ function updateSidebar(s) {
     const lbl1 = s.pred_x && s.pred_x.length ? lblMes(s.pred_x[0]) : "+1m";
     predGrid = `
     <div class="predgrid">
-      <div class="py"><div class="pyl">${lbl1}</div><div class="pyv">${fmt(m.pred_prox_mes)}</div><div class="pyu">vehículos</div></div>
-      <div class="py"><div class="pyl">${lbl12}</div><div class="pyv">${fmt(m.pred_12m)}</div><div class="pyu">vehículos</div></div>
-      <div class="py" style="grid-column:1/-1"><div class="pyl">${lbl24}</div><div class="pyv" style="font-size:22px">${fmt(m.pred_24m)}</div><div class="pyu">vehículos</div></div>
+      <div class="py"><div class="pyl">${lbl1}</div><div class="pyv">${fmtU(m.pred_prox_mes)}</div><div class="pyu">${uLbl}</div></div>
+      <div class="py"><div class="pyl">${lbl12}</div><div class="pyv">${fmtU(m.pred_12m)}</div><div class="pyu">${uLbl}</div></div>
+      <div class="py" style="grid-column:1/-1"><div class="pyl">${lbl24}</div><div class="pyv" style="font-size:22px">${fmtU(m.pred_24m)}</div><div class="pyu">${uLbl}</div></div>
     </div>`;
   } else {
     vStr = String(m.var_pct ?? "–");
